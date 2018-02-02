@@ -8,7 +8,11 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
+import com.jgasteiz.readcomicsandroid.helpers.DownloadComicAsyncTask
 import com.jgasteiz.readcomicsandroid.helpers.Utils
+import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
+import com.jgasteiz.readcomicsandroid.interfaces.OnComicDownloaded
+import com.jgasteiz.readcomicsandroid.interfaces.OnPageDownloaded
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
@@ -35,6 +39,12 @@ class ReadingActivity : Activity() {
         // Get the comic from the intent.
         mComic = intent.getSerializableExtra("comic") as Item
 
+        if (mComic == null) {
+            Log.e(LOG_TAG, "There was an error loading the comic.")
+            Toast.makeText(this, "There was an error loading the comic, go back!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Initialize the progress bar.
         mProgressBar = findViewById<ProgressBar>(R.id.progress_bar)
         mProgressBar!!.visibility = View.GONE
@@ -45,10 +55,28 @@ class ReadingActivity : Activity() {
         // Set a custom single tap listener for navigating through the comic.
         mAttacher!!.onViewTapListener = onTapListener
 
-        // Load the first page.
-        loadPageWithIndex(mCurrentPageIndex)
+        // If the comic is offline, get its number of pages straight away.
+        if (Utils.isComicOffline(this, mComic!!)) {
+            mComic!!.numPages = Utils.getOfflineComicNumPages(this, mComic!!)
+            startReading()
+        }
+        // Otherwise, get the number of pages the hard way.
+        else {
+            Utils.fetchComicDetails(mComic!!.path, object : OnComicDetailsFetched {
+                override fun callback(numPages: Int) {
+                    mComic!!.numPages = numPages
+                    startReading()
+                }
+            })
+        }
+    }
 
-        // Start immersive mode for better reading.
+    /**
+     * Load the first page of the comic and enter immersive mode.
+     */
+    private fun startReading() {
+        mCurrentPageIndex = 0
+        loadPageWithIndex(mCurrentPageIndex)
         setImmersiveMode()
     }
 
@@ -57,8 +85,11 @@ class ReadingActivity : Activity() {
      */
     private fun loadNextPage() {
         mCurrentPageIndex++
-        // TODO: handle end of comic!
-        loadPageWithIndex(mCurrentPageIndex)
+        if (mCurrentPageIndex > mComic!!.numPages!! - 1) {
+            noMorePagesToLoad()
+        } else {
+            loadPageWithIndex(mCurrentPageIndex)
+        }
     }
 
     /**
@@ -68,8 +99,24 @@ class ReadingActivity : Activity() {
         mCurrentPageIndex--
         if (mCurrentPageIndex < 0) {
             mCurrentPageIndex = 0
+        } else {
+            loadPageWithIndex(mCurrentPageIndex)
         }
-        loadPageWithIndex(mCurrentPageIndex)
+    }
+
+    /**
+     * Decrease the current page index to the minimum between "1 page less" and "total num pages in
+     * the comic" and show a toast saying there are no more pages. Also, adjust the num pages of
+     * the comic to the new maximum.
+     * This can happen in 3 places:
+     * 1. by going forward page after page and going over the max number of pages.
+     * 2. by not having downloaded the right amount of files.
+     * 3. api not returning the right count of pages in the comic.
+     */
+    private fun noMorePagesToLoad() {
+        mCurrentPageIndex = minOf(mCurrentPageIndex - 1, mComic!!.numPages!! - 1)
+        mComic!!.numPages = mCurrentPageIndex + 1
+        Toast.makeText(this, "No more pages to load", Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -80,18 +127,13 @@ class ReadingActivity : Activity() {
         mPageImageView!!.visibility = View.GONE
         mProgressBar!!.visibility = View.VISIBLE
 
-        if (mComic == null) {
-            Log.e(LOG_TAG, "No comic to load!")
-            return
-        }
-
         // If the comic is offline, load the page from the local storage.
         if (Utils.isComicOffline(this, mComic!!)) {
-            val pageBitmap = Utils.getComicOfflinePage(this, pageNumber, mComic!!)
+            val pageBitmap = Utils.getOfflineComicPage(this, pageNumber, mComic!!)
             if (pageBitmap != null) {
                 mPageImageView!!.setImageBitmap(pageBitmap)
             } else {
-                Toast.makeText(this, "No more pages to load", Toast.LENGTH_SHORT).show()
+                noMorePagesToLoad()
             }
             mProgressBar!!.visibility = View.GONE
             mPageImageView!!.visibility = View.VISIBLE
@@ -108,7 +150,8 @@ class ReadingActivity : Activity() {
                         mAttacher!!.update()
                     }
                     override fun onError() {
-                        Log.e(LOG_TAG, "An error occurred loading the page.")
+                        noMorePagesToLoad()
+                        loadPageWithIndex(mCurrentPageIndex)
                     }
                 })
         }

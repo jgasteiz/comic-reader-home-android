@@ -111,7 +111,7 @@ object Utils {
     /**
      * Return the downloaded page of the given comic with the given page number.
      */
-    fun getComicOfflinePage(context: Context, pageNumber: Int, comic: Item): Bitmap? {
+    fun getOfflineComicPage(context: Context, pageNumber: Int, comic: Item): Bitmap? {
         // Return the offline page
         val comicDirectory = getComicDirectory(context, comic)
 
@@ -122,6 +122,13 @@ object Utils {
             }
         }
         return null
+    }
+
+    /**
+     * Get the number of pages
+     */
+    fun getOfflineComicNumPages(context: Context, comic: Item): Int {
+        return getComicDirectory(context, comic).listFiles().count()
     }
 
     /**
