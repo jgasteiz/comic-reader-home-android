@@ -1,6 +1,8 @@
 package com.jgasteiz.readcomicsandroid.helpers
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.util.Log
 import com.jgasteiz.readcomicsandroid.interfaces.*
@@ -102,8 +104,24 @@ object Utils {
     /**
      * Return the url for downloading the given comic on the given page number.
      */
-    fun getPageUrl(comic: Item, pageNumber: Int): String {
+    fun getComicPageUrl(comic: Item, pageNumber: Int): String {
         return String.format("%s%s/%s", PAGE_API_URL, comic.path, pageNumber)
+    }
+
+    /**
+     * Return the downloaded page of the given comic with the given page number.
+     */
+    fun getComicOfflinePage(context: Context, pageNumber: Int, comic: Item): Bitmap? {
+        // Return the offline page
+        val comicDirectory = getComicDirectory(context, comic)
+
+        if (pageNumber < comicDirectory.listFiles().count() && pageNumber > -1) {
+            val pageFile = comicDirectory.listFiles()[pageNumber]
+            if (pageFile.exists()) {
+                return BitmapFactory.decodeFile(pageFile.absolutePath)
+            }
+        }
+        return null
     }
 
     /**
@@ -168,11 +186,9 @@ object Utils {
      */
     fun removeComicDownload(context: Context, comic: Item) {
         val comicDirectory = getComicDirectory(context, comic)
-        for (file in comicDirectory.listFiles()) {
-            val result = file.delete()
-            if (result) {
-                Log.d(LOG_TAG, "Comic page deleted")
-            }
+        if (comicDirectory.isDirectory) {
+            comicDirectory.deleteRecursively()
+            Log.d(LOG_TAG, "Directory `%s` deleted".format(comicDirectory.absolutePath))
         }
     }
 }

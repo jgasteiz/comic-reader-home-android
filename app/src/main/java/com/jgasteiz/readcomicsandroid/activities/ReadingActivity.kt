@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -44,9 +45,6 @@ class ReadingActivity : Activity() {
         // Set a custom single tap listener for navigating through the comic.
         mAttacher!!.onViewTapListener = onTapListener
 
-        // Define the callback for picasso image loading.
-        mPicassoCallback = picassoCallback
-
         // Load the first page.
         loadPageWithIndex(mCurrentPageIndex)
 
@@ -82,10 +80,38 @@ class ReadingActivity : Activity() {
         mPageImageView!!.visibility = View.GONE
         mProgressBar!!.visibility = View.VISIBLE
 
-        Picasso
+        if (mComic == null) {
+            Log.e(LOG_TAG, "No comic to load!")
+            return
+        }
+
+        // If the comic is offline, load the page from the local storage.
+        if (Utils.isComicOffline(this, mComic!!)) {
+            val pageBitmap = Utils.getComicOfflinePage(this, pageNumber, mComic!!)
+            if (pageBitmap != null) {
+                mPageImageView!!.setImageBitmap(pageBitmap)
+            } else {
+                Toast.makeText(this, "No more pages to load", Toast.LENGTH_SHORT).show()
+            }
+            mProgressBar!!.visibility = View.GONE
+            mPageImageView!!.visibility = View.VISIBLE
+        }
+        // Otherwise load it using Picasso
+        else {
+            Picasso
                 .with(this)
-                .load(Utils.getPageUrl(mComic!!, pageNumber))
-                .into(mPageImageView!!, mPicassoCallback)
+                .load(Utils.getComicPageUrl(mComic!!, pageNumber))
+                .into(mPageImageView!!, object : Callback {
+                    override fun onSuccess() {
+                        mProgressBar!!.visibility = View.GONE
+                        mPageImageView!!.visibility = View.VISIBLE
+                        mAttacher!!.update()
+                    }
+                    override fun onError() {
+                        Log.e(LOG_TAG, "An error occurred loading the page.")
+                    }
+                })
+        }
     }
 
     /**
@@ -110,25 +136,8 @@ class ReadingActivity : Activity() {
         }
 
     /**
-     * Returns a new Picasso callback instance. To be used when loading an
-     * image the imageview. The callback will update the PhotoView attacher
-     * after the image has been loaded.
-
-     * @return Picasso Callback.
+     * Enable inmersive mode - hide both status and navigation bars.
      */
-    private val picassoCallback: Callback
-        get() = object : Callback {
-            override fun onSuccess() {
-                mProgressBar!!.visibility = View.GONE
-                mPageImageView!!.visibility = View.VISIBLE
-                mAttacher!!.update()
-            }
-
-            override fun onError() {
-                Log.e(LOG_TAG, "An error occurred")
-            }
-        }
-
     private fun setImmersiveMode() {
         window.decorView.systemUiVisibility =
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or

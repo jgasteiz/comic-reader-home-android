@@ -41,7 +41,7 @@ class DownloadComicAsyncTask internal constructor(
 
         for (i in 0 until mComic.numPages!!) {
             try {
-                val pageUrl = Utils.getPageUrl(mComic, i)
+                val pageUrl = Utils.getComicPageUrl(mComic, i)
 
                 // Download a single page.
                 try {
