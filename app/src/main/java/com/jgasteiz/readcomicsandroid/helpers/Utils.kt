@@ -3,20 +3,21 @@ package com.jgasteiz.readcomicsandroid.helpers
 import android.content.Context
 import android.net.ConnectivityManager
 import android.util.Log
-import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
-import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
-import com.jgasteiz.readcomicsandroid.interfaces.OnResponseFetched
+import com.jgasteiz.readcomicsandroid.interfaces.*
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
 import java.util.*
 
 
 object Utils {
 
     private val LOG_TAG = Utils::class.java.simpleName
+
+    var downloads: HashMap<String, Int> = HashMap()
 
     // TODO: move this to some settings.
     private val DIRECTORY_API_URL = "http://192.168.0.28/api/directory/"
@@ -78,7 +79,7 @@ object Utils {
      * Fetch all the directories and comics inside a directory.
      * @param onComicDetailsFetched callback
      */
-    fun fetchComicDetails(context: Context, comicPath: String, onComicDetailsFetched: OnComicDetailsFetched) {
+    fun fetchComicDetails(comicPath: String, onComicDetailsFetched: OnComicDetailsFetched) {
         val task = GetStringResponseAsyncTask(object : OnResponseFetched {
             override fun callback(response: String) {
                 var numPages = -1
@@ -103,5 +104,66 @@ object Utils {
      */
     fun getPageUrl(comic: Item, pageNumber: Int): String {
         return String.format("%s%s/%s", PAGE_API_URL, comic.path, pageNumber)
+    }
+
+    /**
+     * Download the given comic.
+     */
+    fun downloadComic (context: Context, comic: Item) {
+        downloads[comic.path] = 0
+
+        val task = DownloadComicAsyncTask(
+                context,
+                comic,
+                object : OnPageDownloaded {
+                    override fun callback(percentage: Int) {
+                        downloads[comic.path] = percentage
+                    }
+                }, object : OnComicDownloaded {
+                    override fun callback() {
+                        downloads[comic.path] = 100
+                    }
+                }
+        )
+        task.execute()
+    }
+
+    /**
+     * Checks if a given comic has been downloaded and return true if it has.
+     * @param context Context instance
+     * *
+     * @return true if the comic is offline, false if not.
+     */
+    fun isComicOffline(context: Context, comic: Item): Boolean {
+        // A comic is offline if its directory exists and either it's download is complete or
+        // there's no download record of it.
+        return getComicDirectory(context, comic).exists()
+                && (!downloads.containsKey(comic.path)
+                    || downloads[comic.path] == 100)
+    }
+
+    /**
+     * Return the comic directory.
+     * @param context Context instance
+     * *
+     * @return File instance for the comic directory
+     */
+    fun getComicDirectory(context: Context, comic: Item): File {
+        val comicDirectoryPath = String.format("%s%s%s", context.filesDir, File.separator, comic.path)
+        return File(comicDirectoryPath)
+    }
+
+    /**
+     * Delete the downloaded comic pages.
+     * @param comic Comic instance
+     */
+    fun removeComicDownload(context: Context, comic: Item) {
+        val comicDirectory = getComicDirectory(context, comic)
+        for (file in comicDirectory.listFiles()) {
+            val result = file.delete()
+            if (result) {
+                Log.d(LOG_TAG, "Comic page deleted")
+            }
+        }
     }
 }
