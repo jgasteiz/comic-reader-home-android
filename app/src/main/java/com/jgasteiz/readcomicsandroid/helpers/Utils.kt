@@ -112,20 +112,29 @@ object Utils {
     fun downloadComic (context: Context, comic: Item) {
         downloads[comic.path] = 0
 
-        val task = DownloadComicAsyncTask(
-                context,
-                comic,
-                object : OnPageDownloaded {
-                    override fun callback(percentage: Int) {
-                        downloads[comic.path] = percentage
+        // First, get the number of pages of the comic.
+        Utils.fetchComicDetails(comic.path, object : OnComicDetailsFetched {
+            override fun callback(numPages: Int) {
+
+                comic.numPages = numPages
+
+                // When done, download the actual comic.
+                val task = DownloadComicAsyncTask(
+                    context,
+                    comic,
+                    object : OnPageDownloaded {
+                        override fun callback(percentage: Int) {
+                            downloads[comic.path] = percentage
+                        }
+                    }, object : OnComicDownloaded {
+                        override fun callback() {
+                            downloads[comic.path] = 100
+                        }
                     }
-                }, object : OnComicDownloaded {
-                    override fun callback() {
-                        downloads[comic.path] = 100
-                    }
-                }
-        )
-        task.execute()
+                )
+                task.execute()
+            }
+        })
     }
 
     /**

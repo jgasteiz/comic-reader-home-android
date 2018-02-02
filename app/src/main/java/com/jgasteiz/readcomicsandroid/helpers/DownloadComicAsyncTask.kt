@@ -1,10 +1,8 @@
 package com.jgasteiz.readcomicsandroid.helpers
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
-import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
 import com.jgasteiz.readcomicsandroid.interfaces.OnComicDownloaded
 import com.jgasteiz.readcomicsandroid.interfaces.OnPageDownloaded
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -19,32 +17,15 @@ class DownloadComicAsyncTask internal constructor(
         private val mComic: Item,
         private val mOnPageDownloaded: OnPageDownloaded,
         private val mOnComicDownloaded: OnComicDownloaded
-) : AsyncTask<Void, Int, Void>() {
+) : AsyncTask<Void, Int, Boolean>() {
 
     private val LOG_TAG = DownloadComicAsyncTask::class.java.simpleName
-    private val mFilesDir: File
-
-    init {
-        mFilesDir = context.filesDir
-    }
-
-    override fun doInBackground(vararg params: Void): Void? {
-        downloadComic()
-        return null
-    }
-
-    override fun onProgressUpdate(vararg values: Int?) {
-        mOnPageDownloaded.callback(values[0]!!)
-    }
-
-    override fun onPostExecute(aVoid: Void) {
-        mOnComicDownloaded.callback()
-    }
+    private val mFilesDir: File = context.filesDir
 
     /**
      * Download the pages of the given comic in the internal storage.
      */
-    private fun downloadComic() {
+    override fun doInBackground(vararg params: Void): Boolean {
         // Create a directory for the comic
         val comicDirectoryPath = String.format("%s%s%s", mFilesDir, File.separator, mComic.path)
         val comicDirectory = File(comicDirectoryPath)
@@ -53,47 +34,55 @@ class DownloadComicAsyncTask internal constructor(
             Log.d(LOG_TAG, String.format("Comic directory %s created", comicDirectory.absolutePath))
         }
 
-        // First, fetch the number of pages of the comic.
-        Utils.fetchComicDetails(mComic.path, object : OnComicDetailsFetched {
-            override fun callback(numPages: Int) {
+        if (mComic.numPages == null) {
+            Log.d(LOG_TAG, "The comic doesn't have any pages, nothing to download")
+            return false
+        }
 
-                // Now download all the pages.
-                for (i in 0 until numPages) {
-                    val pageUrl = Utils.getPageUrl(mComic, i)
-                    downloadPage(pageUrl, comicDirectoryPath)
+        for (i in 0 until mComic.numPages!!) {
+            try {
+                val pageUrl = Utils.getPageUrl(mComic, i)
 
-                    // Update the progress.
-                    publishProgress(i * 100 / numPages)
+                // Download a single page.
+                try {
+                    val client = OkHttpClient()
+                    val request = Request.Builder().url(pageUrl).build()
+                    val response = client.newCall(request).execute()
+                    if (!response.isSuccessful) {
+                        throw IOException("Failed to download file: " + response)
+                    }
+                    val fileNameParts = pageUrl.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    val fileName = fileNameParts[fileNameParts.size - 1]
+                    val fos = FileOutputStream(String.format("%s%s%s", comicDirectoryPath, File.separator, fileName))
+                    fos.write(response.body()!!.bytes())
+                    fos.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
+
+                // Update the progress.
+                publishProgress(i * 100 / mComic.numPages!!)
+            } catch (e: Exception) {
+                Log.d(LOG_TAG, "Ooops, something happened")
+                return false
             }
-        })
+        }
+        return true
     }
 
-    /**
-     * Download a single page.
-
-     * Only call from a background thread.
-
-     * @param downloadUrl URL of the page to be downloaded.
-     * *
-     * @param comicDirectoryPath directory where the page should be downloaded.
-     */
-    private fun downloadPage(downloadUrl: String, comicDirectoryPath: String) {
-        try {
-            val client = OkHttpClient()
-            val request = Request.Builder().url(downloadUrl).build()
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                throw IOException("Failed to download file: " + response)
-            }
-            val fileNameParts = downloadUrl.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            val fileName = fileNameParts[fileNameParts.size - 1]
-            val fos = FileOutputStream(String.format("%s%s%s", comicDirectoryPath, File.separator, fileName))
-            fos.write(response.body()!!.bytes())
-            fos.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
+    override fun onProgressUpdate(vararg values: Int?) {
+        val percentage: Int = when {
+            values[0] == null -> 100
+            values[0]!! > 100 -> 100
+            else -> values[0]!!
         }
+        mOnPageDownloaded.callback(percentage)
+    }
+
+    override fun onPostExecute(success: Boolean) {
+        mOnComicDownloaded.callback()
     }
 
 }

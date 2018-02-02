@@ -17,6 +17,9 @@ class Item : Serializable {
     var parentDirectory: Item? = null
     var type: ItemType
 
+    // Only used when downloading a comic, otherwise this should be null.
+    var numPages: Int? = null
+
     constructor(jsonObject: JSONObject, type: ItemType) {
         this.type = type
         try {

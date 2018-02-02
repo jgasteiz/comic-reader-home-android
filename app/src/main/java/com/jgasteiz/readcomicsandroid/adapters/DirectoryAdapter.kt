@@ -1,7 +1,6 @@
 package com.jgasteiz.readcomicsandroid.adapters
 
 import android.content.Context
-import android.opengl.Visibility
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -57,17 +56,20 @@ class DirectoryAdapter(
 
     /**
      * Change the action button to `download` a comic.
-     * @param convertView View instance
+     * @param cView View instance
      * *
      * @param comic Comic instance
      */
     private fun setDownloadButton(cView: View, comic: Item) {
-        val downloadButtonView = cView.findViewById(R.id.download_button) as Button
-        val progressTextView = cView.findViewById(R.id.progress_text) as TextView
-
+        val downloadButtonView = cView.findViewById<Button>(R.id.download_button)
         downloadButtonView.text = context.getString(R.string.download_comic)
 
-        checkActiveDownload(comic, cView, progressTextView, downloadButtonView)
+        checkActiveDownload(
+                comic = comic,
+                convertView = cView,
+                progressTextView = cView.findViewById<TextView>(R.id.progress_text),
+                downloadComicButton = downloadButtonView
+        )
 
         // Download the comic when the download button is clicked.
         downloadButtonView.setOnClickListener {
@@ -80,7 +82,6 @@ class DirectoryAdapter(
 
             Utils.downloadComic(context, comic)
 
-            // TODO
             // Check the download status.
             checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
         }
@@ -115,11 +116,12 @@ class DirectoryAdapter(
 
         timer.schedule(object : TimerTask() {
             override fun run() {
-                val progress = Utils.downloads[comic.path]
-                // Log.d(LOG_TAG, Utils.downloads[comic.path].toString())
-                if (progress != 100) {
+                val progress = Utils.downloads[comic.path] as Int
+                if (progress < 100) {
+                    Log.d(LOG_TAG, "Download progress: $progress%")
                     (context as DirectoryActivity).runOnUiThread {
-                        progressTextView.setText("$progress%")
+                        val percentage = "$progress%"
+                        progressTextView.text = percentage
                     }
                 } else {
                     Log.d(LOG_TAG, "Comic downloaded")
@@ -128,8 +130,9 @@ class DirectoryAdapter(
                         progressTextView.visibility = View.GONE
                         downloadComicButton.visibility = View.VISIBLE
                     }
+                    timer.cancel()
                 }
             }
-        }, 0, 500)
+        }, 0, 1000)
     }
 }
