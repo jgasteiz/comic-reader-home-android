@@ -4,4 +4,5 @@
     <string name="active_page">Active Page</string>
     <string name="download_comic">Download</string>
     <string name="progress_text">Dowloading: 10%</string>
+    <string name="downloading_comic">Downloading</string>
 </resources>

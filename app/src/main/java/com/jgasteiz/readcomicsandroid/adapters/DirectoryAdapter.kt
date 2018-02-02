@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.TextView
 import com.jgasteiz.readcomicsandroid.R
+import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import java.util.ArrayList
@@ -38,6 +39,19 @@ class DirectoryAdapter(
         // Show the download button if the item is a comic.
         if (item.type == ItemType.COMIC) {
             downloadButtonView.visibility = View.VISIBLE
+        }
+
+        // Download the comic when the download button is clicked.
+        downloadButtonView.setOnClickListener {
+            val downloadComicButton = cView.findViewById(R.id.download_button) as Button
+            val progressTextView = cView.findViewById(R.id.progress_text) as TextView
+
+            downloadComicButton.visibility = View.GONE
+            progressTextView.visibility = View.VISIBLE
+            progressTextView.setText(R.string.downloading_comic)
+
+            // TODO
+            // Utils.downloadComic(context, comic)
         }
 
         return cView
