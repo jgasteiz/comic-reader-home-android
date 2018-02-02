@@ -1,4 +1,4 @@
-package com.jgasteiz.readcomicsandroid
+package com.jgasteiz.readcomicsandroid.activities
 
 import android.app.Activity
 import android.os.Bundle
@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
+import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.squareup.picasso.Callback

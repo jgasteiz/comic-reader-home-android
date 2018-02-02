@@ -1,10 +1,12 @@
-package com.jgasteiz.readcomicsandroid
+package com.jgasteiz.readcomicsandroid.activities
 
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.AdapterView
 import android.widget.ListView
+import com.jgasteiz.readcomicsandroid.R
+import com.jgasteiz.readcomicsandroid.adapters.DirectoryAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item

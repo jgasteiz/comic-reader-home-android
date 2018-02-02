@@ -12,7 +12,7 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".DirectoryActivity">
+        <activity android:name=".activities.DirectoryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -20,8 +20,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ReadingActivity"
-            android:parentActivityName=".DirectoryActivity"
+            android:name=".activities.ReadingActivity"
+            android:parentActivityName=".activities.DirectoryActivity"
             android:configChanges="orientation|screenSize"
             />
     </application>
