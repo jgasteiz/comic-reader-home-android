@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ReadComicsAndroid</string>
+    <string name="item_name">Item Name</string>
+    <string name="active_page">Active Page</string>
+</resources>
