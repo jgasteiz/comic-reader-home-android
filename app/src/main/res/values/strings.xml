@@ -2,4 +2,6 @@
     <string name="app_name">ReadComicsAndroid</string>
     <string name="item_name">Item Name</string>
     <string name="active_page">Active Page</string>
+    <string name="download_comic">Download</string>
+    <string name="progress_text">Dowloading: 10%</string>
 </resources>

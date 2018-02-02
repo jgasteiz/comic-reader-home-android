@@ -1,13 +1,16 @@
 package com.jgasteiz.readcomicsandroid.adapters
 
 import android.content.Context
+import android.opengl.Visibility
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.TextView
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.models.Item
+import com.jgasteiz.readcomicsandroid.models.ItemType
 import java.util.ArrayList
 
 class DirectoryAdapter(
@@ -27,9 +30,15 @@ class DirectoryAdapter(
 
         // Get references to the text views.
         val itemTitleView = cView!!.findViewById<TextView>(R.id.item_name)
+        val downloadButtonView = cView.findViewById<Button>(R.id.download_button)
 
         // Set the comic/direcotry name
         itemTitleView.text = item.name
+
+        // Show the download button if the item is a comic.
+        if (item.type == ItemType.COMIC) {
+            downloadButtonView.visibility = View.VISIBLE
+        }
 
         return cView
     }
