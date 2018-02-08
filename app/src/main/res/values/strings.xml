@@ -6,4 +6,5 @@
     <string name="progress_text">Dowloading: 10%</string>
     <string name="downloading_comic">Downloading</string>
     <string name="remove_download">Remove</string>
+    <string name="title_activity_downloads">DownloadsActivity</string>
 </resources>

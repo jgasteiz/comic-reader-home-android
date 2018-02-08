@@ -3,8 +3,10 @@ package com.jgasteiz.readcomicsandroid.activities
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.widget.AdapterView
 import android.widget.ListView
+import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.adapters.DirectoryAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
@@ -19,6 +21,13 @@ class DirectoryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val downloadButtonView = findViewById<FloatingActionButton>(R.id.goto_downloads)
+
+        downloadButtonView.setOnClickListener { _ ->
+            val intent = Intent(this, DownloadsActivity::class.java)
+            startActivity(intent)
+        }
 
         loadCurrentDirectory()
     }
@@ -51,6 +60,8 @@ class DirectoryActivity : AppCompatActivity() {
                         }
                     }
             )
+        } else {
+            Toast.makeText(this, "There's no internet connection", Toast.LENGTH_SHORT).show()
         }
     }
 
