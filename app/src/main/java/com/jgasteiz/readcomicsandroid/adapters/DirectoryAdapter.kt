@@ -49,6 +49,8 @@ class DirectoryAdapter(
             } else {
                 setDownloadButton(cView, item)
             }
+        } else {
+            downloadButtonView.visibility = View.GONE
         }
 
         return cView
@@ -63,13 +65,6 @@ class DirectoryAdapter(
     private fun setDownloadButton(cView: View, comic: Item) {
         val downloadButtonView = cView.findViewById<Button>(R.id.download_button)
         downloadButtonView.text = context.getString(R.string.download_comic)
-
-        checkActiveDownload(
-                comic = comic,
-                convertView = cView,
-                progressTextView = cView.findViewById<TextView>(R.id.progress_text),
-                downloadComicButton = downloadButtonView
-        )
 
         // Download the comic when the download button is clicked.
         downloadButtonView.setOnClickListener {
