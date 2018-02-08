@@ -30,6 +30,12 @@ class Item : Serializable {
         }
     }
 
+    constructor(name: String?, path: String?, type: ItemType?) {
+        this.name = name!!
+        this.path = path!!
+        this.type = type!!
+    }
+
     constructor(name: String?, path: String?, parentDirectory: Item?, type: ItemType?) {
         this.name = name!!
         this.path = path!!

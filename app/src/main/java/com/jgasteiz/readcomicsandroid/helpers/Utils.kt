@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
+import android.os.Build
+import android.support.annotation.RequiresApi
 import android.util.Log
 import com.jgasteiz.readcomicsandroid.interfaces.*
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -13,6 +15,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.util.*
+import android.util.Base64
+import android.R.attr.data
+import java.nio.charset.Charset
 
 
 object Utils {
@@ -197,5 +202,21 @@ object Utils {
             comicDirectory.deleteRecursively()
             Log.d(LOG_TAG, "Directory `%s` deleted".format(comicDirectory.absolutePath))
         }
+    }
+
+    fun getDownloadedComics(context: Context): ArrayList<Item> {
+        val comicList = ArrayList<Item>()
+
+        val downloadedDirectories = context.filesDir.listFiles()
+        (0 until downloadedDirectories.count())
+                .map { downloadedDirectories.get(it) as File }
+                .mapTo(comicList) {
+                    val name = Base64.decode(it.name, android.util.Base64.DEFAULT)
+                    val decodedPath = String(name, Charset.defaultCharset())
+                    val decodedName = decodedPath.split("/").last()
+                    Item(decodedName, it.name, ItemType.COMIC)
+                }
+
+        return comicList
     }
 }
