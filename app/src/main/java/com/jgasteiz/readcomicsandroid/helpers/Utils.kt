@@ -204,6 +204,9 @@ object Utils {
         }
     }
 
+    /**
+     * Get the list of offline/downloaded comics.
+     */
     fun getDownloadedComics(context: Context): ArrayList<Item> {
         val comicList = ArrayList<Item>()
 
@@ -217,6 +220,8 @@ object Utils {
                     Item(decodedName, it.name, ItemType.COMIC)
                 }
 
+        // Sort them by name.
+        comicList.sortBy { it.name }
         return comicList
     }
 }
