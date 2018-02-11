@@ -8,15 +8,13 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
-import com.jgasteiz.readcomicsandroid.helpers.DownloadComicAsyncTask
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
-import com.jgasteiz.readcomicsandroid.interfaces.OnComicDownloaded
-import com.jgasteiz.readcomicsandroid.interfaces.OnPageDownloaded
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import uk.co.senab.photoview.PhotoViewAttacher
+import android.content.res.Configuration
 
 
 class ReadingActivity : Activity() {
@@ -70,6 +68,21 @@ class ReadingActivity : Activity() {
             })
         }
     }
+
+    // TODO
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Fit width on landscape
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
+        }
+        // Fit page on portrait
+        else {
+
+        }
+    }
+
 
     /**
      * Load the first page of the comic and enter immersive mode.
