@@ -145,6 +145,12 @@ class ReadingActivity : Activity() {
             val pageBitmap = Utils.getOfflineComicPage(this, pageNumber, mComic!!)
             if (pageBitmap != null) {
                 mPageImageView!!.setImageBitmap(pageBitmap)
+                // TODO: look into this.
+                val rect = mAttacher!!.displayRect
+                val oldScale = mAttacher!!.scale
+                mAttacher!!.displayRect.set(rect.left, 0.0F, rect.right, rect.bottom)
+                mAttacher!!.update()
+                mAttacher!!.scale = oldScale
             } else {
                 noMorePagesToLoad()
             }
