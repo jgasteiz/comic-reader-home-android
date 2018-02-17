@@ -15,6 +15,7 @@ import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import uk.co.senab.photoview.PhotoViewAttacher
 import android.content.res.Configuration
+import android.view.MotionEvent
 
 
 class ReadingActivity : Activity() {
@@ -32,7 +33,7 @@ class ReadingActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.reading_activity)
+        setContentView(R.layout.actvity_reading)
 
         // Get the comic from the intent.
         mComic = intent.getSerializableExtra("comic") as Item

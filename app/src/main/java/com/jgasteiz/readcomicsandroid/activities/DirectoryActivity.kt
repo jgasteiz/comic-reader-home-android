@@ -22,8 +22,8 @@ class DirectoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Go to downloads
         val downloadButtonView = findViewById<FloatingActionButton>(R.id.goto_downloads)
-
         downloadButtonView.setOnClickListener { _ ->
             val intent = Intent(this, DownloadsActivity::class.java)
             startActivity(intent)

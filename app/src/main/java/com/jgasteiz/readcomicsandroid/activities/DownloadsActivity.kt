@@ -2,6 +2,7 @@ package com.jgasteiz.readcomicsandroid.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -23,6 +24,13 @@ class DownloadsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_downloads)
         setSupportActionBar(toolbar)
+
+        // Go to root
+        val downloadButtonView = findViewById<FloatingActionButton>(R.id.goto_root)
+        downloadButtonView.setOnClickListener { _ ->
+            val intent = Intent(this, DirectoryActivity::class.java)
+            startActivity(intent)
+        }
 
         // Get offline comics
         val downloadedComicList = Utils.getDownloadedComics(this)
