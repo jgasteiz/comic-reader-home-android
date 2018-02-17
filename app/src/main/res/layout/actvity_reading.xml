@@ -6,6 +6,26 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
+    <!-- DEBUG -->
+    <!--<LinearLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:orientation="horizontal"-->
+    <!--&gt;-->
+    <!--<Button-->
+    <!--android:layout_weight="1"-->
+    <!--android:id="@+id/fit_width"-->
+    <!--android:text="@string/fit_width"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content" />-->
+    <!--<Button-->
+    <!--android:layout_weight="1"-->
+    <!--android:id="@+id/fit_height"-->
+    <!--android:text="@string/fit_height"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content" />-->
+    <!--</LinearLayout>-->
+
     <ImageView
         android:id="@+id/active_page"
         android:layout_width="match_parent"

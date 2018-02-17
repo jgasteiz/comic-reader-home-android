@@ -7,4 +7,6 @@
     <string name="downloading_comic">Downloading</string>
     <string name="remove_download">Remove</string>
     <string name="title_activity_downloads">DownloadsActivity</string>
+    <string name="fit_width">Fit width</string>
+    <string name="fit_height">Fit height</string>
 </resources>
