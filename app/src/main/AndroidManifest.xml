@@ -27,6 +27,8 @@
             android:name=".activities.DownloadsActivity"
             android:label="@string/title_activity_downloads"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <service android:name=".services.DownloadsService" />
     </application>
 
 </manifest>

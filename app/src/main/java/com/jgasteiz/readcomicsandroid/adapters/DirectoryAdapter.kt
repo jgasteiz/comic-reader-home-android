@@ -22,6 +22,8 @@ class DirectoryAdapter(
 
     private val LOG_TAG = DirectoryAdapter::class.java.simpleName
 
+    private var mDirectoryActivity: DirectoryActivity = context as DirectoryActivity
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var cView = convertView
         // Get the data item for this position
@@ -75,7 +77,7 @@ class DirectoryAdapter(
             progressTextView.visibility = View.VISIBLE
             progressTextView.setText(R.string.downloading_comic)
 
-            Utils.downloadComic(context, comic)
+            mDirectoryActivity.mService?.downloadComic(comic)
 
             // Check the download status.
             checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
