@@ -3,11 +3,15 @@ package com.jgasteiz.readcomicsandroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.widget.AdapterView
+import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.adapters.DirectoryAdapter
+import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -101,5 +105,49 @@ class DirectoryActivity() : BaseActivity() {
                 loadCurrentDirectory()
             }
         }
+    }
+
+
+    /**
+     * Populate the activity list view with comics/directories.
+     *
+     * TODO: get the recycler adapter working
+     */
+    private fun populateListViewRecyclerAdapter(itemList: ArrayList<Item>) {
+        val recyclerView = findViewById<RecyclerView>(R.id.itemList)
+
+        recyclerView.layoutManager = LinearLayoutManager(
+                this,
+                LinearLayout.VERTICAL,
+                false
+        )
+
+        val adapter = ItemListAdapter(this, itemList) {
+
+            // If the item is a comic, go read it.
+            if (it.type == ItemType.COMIC) {
+                val intent = Intent(this, ReadingActivity::class.java)
+                intent.putExtra("comic", it)
+                startActivity(intent)
+            }
+            // Otherwise, navigate!
+            else if (it.type == ItemType.DIRECTORY) {
+                if (mCurrentDirectory != null) {
+                    it.parentDirectory = Item(
+                            mCurrentDirectory!!.name,
+                            mCurrentDirectory!!.path,
+                            mCurrentDirectory!!.parentDirectory,
+                            mCurrentDirectory!!.type
+                    )
+                } else {
+                    it.parentDirectory = null
+                }
+
+                mCurrentDirectory = it
+                loadCurrentDirectory()
+            }
+
+        }
+        recyclerView.adapter = adapter
     }
 }

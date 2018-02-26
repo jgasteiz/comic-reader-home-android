@@ -7,6 +7,12 @@
         android:layout_height="match_parent"
         tools:context="com.jgasteiz.readcomicsandroid.activities.DirectoryActivity">
 
+    <!-- TODO get the recycler adapter working first -->
+    <!--<android.support.v7.widget.RecyclerView-->
+        <!--android:id="@+id/itemList"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
+
     <ListView
         android:id="@+id/itemList"
         android:layout_width="match_parent"
