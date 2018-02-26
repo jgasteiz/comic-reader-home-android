@@ -1,8 +1,6 @@
 package com.jgasteiz.readcomicsandroid.activities
 
-import android.content.Context
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.widget.AdapterView
@@ -14,19 +12,11 @@ import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
-import com.jgasteiz.readcomicsandroid.services.DownloadsService
-import android.content.ComponentName
-import com.jgasteiz.readcomicsandroid.services.DownloadsService.LocalBinder
-import android.os.IBinder
-import android.content.ServiceConnection
 
 
-class DirectoryActivity : AppCompatActivity() {
+class DirectoryActivity : BaseActivity() {
 
     private var mCurrentDirectory: Item? = null
-
-    var mService: DownloadsService? = null
-    private var mBound = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +30,6 @@ class DirectoryActivity : AppCompatActivity() {
         }
 
         loadCurrentDirectory()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val intent = Intent(this, DownloadsService::class.java)
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
     }
 
     /**
@@ -114,22 +98,6 @@ class DirectoryActivity : AppCompatActivity() {
                 mCurrentDirectory = item
                 loadCurrentDirectory()
             }
-        }
-    }
-
-    /** Defines callbacks for service binding, passed to bindService()  */
-    private val mConnection = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName,
-                                        service: IBinder) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            val binder = service as LocalBinder
-            mService = binder.getService
-            mBound = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
         }
     }
 }

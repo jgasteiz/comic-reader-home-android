@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.TextView
 import com.jgasteiz.readcomicsandroid.R
+import com.jgasteiz.readcomicsandroid.activities.BaseActivity
 import com.jgasteiz.readcomicsandroid.activities.DirectoryActivity
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -22,7 +23,7 @@ class DirectoryAdapter(
 
     private val LOG_TAG = DirectoryAdapter::class.java.simpleName
 
-    private var mDirectoryActivity: DirectoryActivity = context as DirectoryActivity
+    private var mActivity: BaseActivity = context as BaseActivity
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var cView = convertView
@@ -70,14 +71,14 @@ class DirectoryAdapter(
 
         // Download the comic when the download button is clicked.
         downloadButtonView.setOnClickListener {
-            val downloadComicButton = cView.findViewById(R.id.download_button) as Button
-            val progressTextView = cView.findViewById(R.id.progress_text) as TextView
+            val downloadComicButton = cView.findViewById<Button>(R.id.download_button)
+            val progressTextView = cView.findViewById<TextView>(R.id.progress_text)
 
             downloadComicButton.visibility = View.GONE
             progressTextView.visibility = View.VISIBLE
             progressTextView.setText(R.string.downloading_comic)
 
-            mDirectoryActivity.mService?.downloadComic(comic)
+            mActivity.mService?.downloadComic(comic)
 
             // Check the download status.
             checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
@@ -91,7 +92,7 @@ class DirectoryAdapter(
      * @param comic Comic instance
      */
     private fun setRemoveButton(convertView: View, comic: Item) {
-        val downloadComicButton = convertView.findViewById(R.id.download_button) as Button
+        val downloadComicButton = convertView.findViewById<Button>(R.id.download_button)
         downloadComicButton.text = context.getString(R.string.remove_download)
 
         // Remove the downloaded comic when the button is clicked.

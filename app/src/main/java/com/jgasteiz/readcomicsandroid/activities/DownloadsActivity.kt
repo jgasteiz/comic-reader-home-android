@@ -3,8 +3,6 @@ package com.jgasteiz.readcomicsandroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.AdapterView
 import android.widget.ListView
@@ -12,11 +10,10 @@ import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.adapters.DirectoryAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
-import com.jgasteiz.readcomicsandroid.models.ItemType
 
 import kotlinx.android.synthetic.main.activity_downloads.*
 
-class DownloadsActivity : AppCompatActivity() {
+class DownloadsActivity : BaseActivity() {
 
     private val LOG_TAG = DownloadsActivity::class.java.simpleName
 
