@@ -14,9 +14,11 @@ import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 
 
-class DirectoryActivity : BaseActivity() {
+class DirectoryActivity() : BaseActivity() {
 
     private var mCurrentDirectory: Item? = null
+
+    override val hasRemovableItems = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

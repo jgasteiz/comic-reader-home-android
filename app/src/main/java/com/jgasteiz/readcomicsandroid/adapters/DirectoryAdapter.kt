@@ -15,6 +15,7 @@ import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import java.util.*
+import kotlin.collections.ArrayList
 
 class DirectoryAdapter(
         context: Context,
@@ -24,6 +25,7 @@ class DirectoryAdapter(
     private val LOG_TAG = DirectoryAdapter::class.java.simpleName
 
     private var mActivity: BaseActivity = context as BaseActivity
+    private val mItemList: ArrayList<Item> = itemList
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var cView = convertView
@@ -37,14 +39,14 @@ class DirectoryAdapter(
 
         // Get references to the text views.
         val itemTitleView = cView!!.findViewById<TextView>(R.id.item_name)
-        val downloadButtonView = cView.findViewById<Button>(R.id.download_button)
+        val actionButton = cView.findViewById<Button>(R.id.action_button)
 
         // Set the comic/direcotry name
         itemTitleView.text = item.name
 
         // Show the download button if the item is a comic.
         if (item.type == ItemType.COMIC) {
-            downloadButtonView.visibility = View.VISIBLE
+            actionButton.visibility = View.VISIBLE
 
             // Check if a comic is offline or not.
             if (Utils.isComicOffline(context, item)) {
@@ -53,7 +55,7 @@ class DirectoryAdapter(
                 setDownloadButton(cView, item)
             }
         } else {
-            downloadButtonView.visibility = View.GONE
+            actionButton.visibility = View.GONE
         }
 
         return cView
@@ -66,12 +68,12 @@ class DirectoryAdapter(
      * @param comic Comic instance
      */
     private fun setDownloadButton(cView: View, comic: Item) {
-        val downloadButtonView = cView.findViewById<Button>(R.id.download_button)
-        downloadButtonView.text = context.getString(R.string.download_comic)
+        val downloadButton = cView.findViewById<Button>(R.id.action_button)
+        downloadButton.text = context.getString(R.string.download_comic)
 
         // Download the comic when the download button is clicked.
-        downloadButtonView.setOnClickListener {
-            val downloadComicButton = cView.findViewById<Button>(R.id.download_button)
+        downloadButton.setOnClickListener {
+            val downloadComicButton = cView.findViewById<Button>(R.id.action_button)
             val progressTextView = cView.findViewById<TextView>(R.id.progress_text)
 
             downloadComicButton.visibility = View.GONE
@@ -92,18 +94,24 @@ class DirectoryAdapter(
      * @param comic Comic instance
      */
     private fun setRemoveButton(convertView: View, comic: Item) {
-        val downloadComicButton = convertView.findViewById<Button>(R.id.download_button)
-        downloadComicButton.text = context.getString(R.string.remove_download)
+        val removeComicButton = convertView.findViewById<Button>(R.id.action_button)
+        removeComicButton.text = context.getString(R.string.remove_download)
 
         // Remove the downloaded comic when the button is clicked.
-        downloadComicButton.setOnClickListener {
+        removeComicButton.setOnClickListener {
             Utils.removeComicDownload(context, comic)
-            setDownloadButton(convertView, comic)
+            if (mActivity.hasRemovableItems) {
+                mItemList.remove(comic)
+                notifyDataSetChanged()
+            } else {
+                setDownloadButton(convertView, comic)
+            }
         }
     }
 
     /**
      * Check whether a download is taking place for the given comic or not, and update its status.
+     * TODO: do this in the background, it currently blocks the main thread.
      */
     private fun checkActiveDownload (comic: Item, convertView: View, progressTextView: TextView, downloadComicButton: Button) {
         if (Utils.downloads[comic.path] == null) {

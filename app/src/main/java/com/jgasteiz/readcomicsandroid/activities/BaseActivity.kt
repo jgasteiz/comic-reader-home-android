@@ -10,6 +10,8 @@ import com.jgasteiz.readcomicsandroid.services.DownloadsService
 
 abstract class BaseActivity : AppCompatActivity() {
 
+    abstract val hasRemovableItems: Boolean
+
     var mService: DownloadsService? = null
     private var mBound = false
 

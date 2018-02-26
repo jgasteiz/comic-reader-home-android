@@ -17,6 +17,8 @@ class DownloadsActivity : BaseActivity() {
 
     private val LOG_TAG = DownloadsActivity::class.java.simpleName
 
+    override val hasRemovableItems = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_downloads)

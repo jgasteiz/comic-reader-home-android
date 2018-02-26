@@ -20,7 +20,7 @@
     <Button
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:id="@+id/download_button"
+        android:id="@+id/action_button"
         android:text="@string/download_comic"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
