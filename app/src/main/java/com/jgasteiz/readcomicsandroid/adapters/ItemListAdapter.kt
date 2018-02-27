@@ -15,6 +15,7 @@ import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import kotlinx.android.synthetic.main.list_item.view.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ItemListAdapter(private val context: BaseActivity,
@@ -31,6 +32,12 @@ class ItemListAdapter(private val context: BaseActivity,
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bindItem(itemList[position], context)
+
+        if (Utils.isComicOffline(context, itemList[position])) {
+            setRemoveButton(holder.itemView, itemList[position])
+        } else {
+            setDownloadButton(holder.itemView, itemList[position])
+        }
     }
 
     override fun getItemCount(): Int {
@@ -46,15 +53,6 @@ class ItemListAdapter(private val context: BaseActivity,
 
                 if (item.type == ItemType.COMIC) {
                     itemView.action_button.visibility = View.VISIBLE
-
-                    // Check if a comic is offline or not.
-                    if (Utils.isComicOffline(context, item)) {
-                        // TODO
-                        // setRemoveButton(cView, item)
-                    } else {
-                        // TODO
-                        // setDownloadButton(cView, item)
-                    }
                 } else {
                     itemView.action_button.visibility = View.GONE
                 }
@@ -83,9 +81,8 @@ class ItemListAdapter(private val context: BaseActivity,
 
              context.mService?.downloadComic(comic)
 
-            // TODO
             // Check the download status.
-            // checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
+             checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
         }
     }
 

@@ -5,17 +5,14 @@ import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.widget.AdapterView
-import android.widget.LinearLayout
-import android.widget.ListView
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
-import com.jgasteiz.readcomicsandroid.adapters.DirectoryAdapter
 import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
+import android.support.v7.widget.DividerItemDecoration
 
 
 class DirectoryActivity() : BaseActivity() {
@@ -62,7 +59,7 @@ class DirectoryActivity() : BaseActivity() {
                     mCurrentDirectory?.path,
                     object : OnDirectoryContentFetched {
                         override fun callback(itemList: ArrayList<Item>) {
-                            populateListView(itemList)
+                            populateRecyclerView(itemList)
                         }
                     }
             )
@@ -74,53 +71,12 @@ class DirectoryActivity() : BaseActivity() {
     /**
      * Populate the activity list view with comics/directories.
      */
-    private fun populateListView(itemList: ArrayList<Item>) {
-        val listView = findViewById<ListView>(R.id.itemList)
-        val adapter = DirectoryAdapter(this, itemList)
-        listView.adapter = adapter
-
-        listView!!.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            val item = itemList[position]
-
-            // If the item is a comic, go read it.
-            if (item.type == ItemType.COMIC) {
-                val intent = Intent(this, ReadingActivity::class.java)
-                intent.putExtra("comic", item)
-                startActivity(intent)
-            }
-            // Otherwise, navigate!
-            else if (item.type == ItemType.DIRECTORY) {
-                if (mCurrentDirectory != null) {
-                    item.parentDirectory = Item(
-                            mCurrentDirectory!!.name,
-                            mCurrentDirectory!!.path,
-                            mCurrentDirectory!!.parentDirectory,
-                            mCurrentDirectory!!.type
-                    )
-                } else {
-                    item.parentDirectory = null
-                }
-
-                mCurrentDirectory = item
-                loadCurrentDirectory()
-            }
-        }
-    }
-
-
-    /**
-     * Populate the activity list view with comics/directories.
-     *
-     * TODO: get the recycler adapter working
-     */
-    private fun populateListViewRecyclerAdapter(itemList: ArrayList<Item>) {
+    private fun populateRecyclerView(itemList: ArrayList<Item>) {
         val recyclerView = findViewById<RecyclerView>(R.id.itemList)
-
-        recyclerView.layoutManager = LinearLayoutManager(
-                this,
-                LinearLayout.VERTICAL,
-                false
-        )
+        val linearLayoutManager = LinearLayoutManager(this)
+        val dividerItemDecoration = DividerItemDecoration(recyclerView.context, linearLayoutManager.orientation)
+        recyclerView.addItemDecoration(dividerItemDecoration)
+        recyclerView.layoutManager = linearLayoutManager
 
         val adapter = ItemListAdapter(this, itemList) {
 

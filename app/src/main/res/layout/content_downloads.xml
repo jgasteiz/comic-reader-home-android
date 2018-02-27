@@ -8,9 +8,10 @@
     tools:context="com.jgasteiz.readcomicsandroid.activities.DownloadsActivity"
     tools:showIn="@layout/activity_downloads">
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/itemList"
+        android:scrollbars="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="match_parent"/>
 
 </android.support.constraint.ConstraintLayout>
