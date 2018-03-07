@@ -6,9 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import com.jgasteiz.readcomicsandroid.services.DownloadsService
 
 abstract class BaseActivity : AppCompatActivity() {
+
+    private val LOG_TAG = BaseActivity::class.java.simpleName
 
     abstract val hasRemovableItems: Boolean
 
@@ -18,7 +21,14 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, DownloadsService::class.java)
+        Log.d(LOG_TAG, "Binding the service")
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(LOG_TAG, "Unbinding the service")
+        unbindService(mConnection)
     }
 
     /** Defines callbacks for service binding, passed to bindService()  */

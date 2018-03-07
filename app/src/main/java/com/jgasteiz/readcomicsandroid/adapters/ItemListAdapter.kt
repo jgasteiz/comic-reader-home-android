@@ -79,10 +79,10 @@ class ItemListAdapter(private val context: BaseActivity,
             progressTextView.visibility = View.VISIBLE
             progressTextView.setText(R.string.downloading_comic)
 
-             context.mService?.downloadComic(comic)
+            context.mService?.downloadComic(comic)
 
             // Check the download status.
-             checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
+            checkActiveDownload(comic, cView, progressTextView, downloadComicButton)
         }
     }
 

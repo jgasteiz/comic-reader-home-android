@@ -1,11 +1,11 @@
 package com.jgasteiz.readcomicsandroid.helpers
 
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
-import android.os.Build
-import android.support.annotation.RequiresApi
 import android.util.Log
 import com.jgasteiz.readcomicsandroid.interfaces.*
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -16,13 +16,19 @@ import org.json.JSONObject
 import java.io.File
 import java.util.*
 import android.util.Base64
-import android.R.attr.data
+import android.support.v4.app.NotificationCompat
+import com.jgasteiz.readcomicsandroid.R
 import java.nio.charset.Charset
+import android.support.v4.app.NotificationManagerCompat
+import android.os.Build
+import android.support.annotation.RequiresApi
 
 
 object Utils {
 
     private val LOG_TAG = Utils::class.java.simpleName
+    private val CHANNEL_ID = Utils::class.java.simpleName
+    private val DOWNLOAD_NOTIFICATION_ID = 1
 
     var downloads: HashMap<String, Int> = HashMap()
 
@@ -141,6 +147,14 @@ object Utils {
      */
     fun downloadComic (context: Context, comic: Item) {
         downloads[comic.path] = 0
+
+        // TODO: deal with this in a better way
+        @SuppressLint("NewApi")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationHelper = NotificationHelper(context)
+            val notification = notificationHelper.getNotification("Downloading ${comic.name}", "Downloading ${comic.name}")
+            notificationHelper.notify(DOWNLOAD_NOTIFICATION_ID, notification)
+        }
 
         // First, get the number of pages of the comic.
         Utils.fetchComicDetails(comic.path, object : OnComicDetailsFetched {
