@@ -16,12 +16,8 @@ import org.json.JSONObject
 import java.io.File
 import java.util.*
 import android.util.Base64
-import android.support.v4.app.NotificationCompat
-import com.jgasteiz.readcomicsandroid.R
 import java.nio.charset.Charset
-import android.support.v4.app.NotificationManagerCompat
 import android.os.Build
-import android.support.annotation.RequiresApi
 
 
 object Utils {
@@ -33,9 +29,11 @@ object Utils {
     var downloads: HashMap<String, Int> = HashMap()
 
     // TODO: move this to some settings.
-    private val DIRECTORY_API_URL = "http://192.168.0.28/api/directory/"
-    private val COMIC_DETAIL_API_URL = "http://192.168.0.28/api/comic/"
-    private val PAGE_API_URL = "http://192.168.0.28/api/page/"
+    private val SERVER_ADDRESS = "192.168.0.28"
+
+    private val DIRECTORY_API_URL = "http://${SERVER_ADDRESS}/api/directory/"
+    private val COMIC_DETAIL_API_URL = "http://${SERVER_ADDRESS}/api/comic/"
+    private val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
 
     /**
      * Returns whether there's a network available.

@@ -72,6 +72,11 @@ class DirectoryActivity() : BaseActivity() {
      * Populate the activity list view with comics/directories.
      */
     private fun populateRecyclerView(itemList: ArrayList<Item>) {
+        if (itemList.size == 0) {
+            Toast.makeText(this, "There are no items to load. Make sure the server is working well.", Toast.LENGTH_LONG).show()
+            return
+        }
+
         val recyclerView = findViewById<RecyclerView>(R.id.itemList)
         val linearLayoutManager = LinearLayoutManager(this)
         val dividerItemDecoration = DividerItemDecoration(recyclerView.context, linearLayoutManager.orientation)

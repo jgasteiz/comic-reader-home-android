@@ -4,11 +4,16 @@ import android.os.AsyncTask
 import com.jgasteiz.readcomicsandroid.interfaces.OnResponseFetched
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.SocketTimeoutException
 
 
 class GetStringResponseAsyncTask(private val mOnResponseFetched: OnResponseFetched) : AsyncTask<String, Void, String>() {
 
     private val client = OkHttpClient()
+
+    private val _timeout = "timeout"
+    private val _noResponseBody = "noResponseBody"
+    private val _otherError = "otherError"
 
     override fun doInBackground(vararg params: String): String? {
 
@@ -20,12 +25,14 @@ class GetStringResponseAsyncTask(private val mOnResponseFetched: OnResponseFetch
             if (response?.body() != null) {
                 return response.body()!!.string()
             }
-            return ""
+            return this._noResponseBody
+        } catch (e: SocketTimeoutException) {
+            e.printStackTrace()
+            return this._timeout
         } catch (e: Exception) {
             e.printStackTrace()
+            return this._otherError
         }
-
-        return null
     }
 
     override fun onPostExecute(response: String) {
