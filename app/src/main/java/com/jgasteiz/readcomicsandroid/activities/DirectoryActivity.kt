@@ -83,32 +83,44 @@ class DirectoryActivity() : BaseActivity() {
         recyclerView.addItemDecoration(dividerItemDecoration)
         recyclerView.layoutManager = linearLayoutManager
 
-        val adapter = ItemListAdapter(this, itemList) {
-
-            // If the item is a comic, go read it.
-            if (it.type == ItemType.COMIC) {
-                val intent = Intent(this, ReadingActivity::class.java)
-                intent.putExtra("comic", it)
-                startActivity(intent)
-            }
-            // Otherwise, navigate!
-            else if (it.type == ItemType.DIRECTORY) {
-                if (mCurrentDirectory != null) {
-                    it.parentDirectory = Item(
-                            mCurrentDirectory!!.name,
-                            mCurrentDirectory!!.path,
-                            mCurrentDirectory!!.parentDirectory,
-                            mCurrentDirectory!!.type
-                    )
-                } else {
-                    it.parentDirectory = null
+        val adapter = ItemListAdapter(
+                this,
+                itemList,
+                onItemClick = ::onItemClick,
+                onDownloadClick = ::startDownload,
+                onRemoveClick = {
+                    removeDownload(it)
+                    false
                 }
+        )
+        recyclerView.adapter = adapter
+    }
 
-                mCurrentDirectory = it
-                loadCurrentDirectory()
+    /**
+     * Handle a click event on a comic or a directory.
+     */
+    private fun onItemClick(item: Item) {
+        // If the item is a comic, go read it.
+        if (item.type == ItemType.COMIC) {
+            val intent = Intent(this, ReadingActivity::class.java)
+            intent.putExtra("comic", item)
+            startActivity(intent)
+        }
+        // Otherwise, navigate!
+        else if (item.type == ItemType.DIRECTORY) {
+            if (mCurrentDirectory != null) {
+                item.parentDirectory = Item(
+                        mCurrentDirectory!!.name,
+                        mCurrentDirectory!!.path,
+                        mCurrentDirectory!!.parentDirectory,
+                        mCurrentDirectory!!.type
+                )
+            } else {
+                item.parentDirectory = null
             }
 
+            mCurrentDirectory = item
+            loadCurrentDirectory()
         }
-        recyclerView.adapter = adapter
     }
 }

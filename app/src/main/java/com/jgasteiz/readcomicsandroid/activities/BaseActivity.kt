@@ -1,13 +1,12 @@
 package com.jgasteiz.readcomicsandroid.activities
 
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
+import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.services.DownloadsService
+import android.os.Bundle
+import com.jgasteiz.readcomicsandroid.helpers.Utils
+
 
 abstract class BaseActivity : AppCompatActivity() {
 
@@ -15,36 +14,23 @@ abstract class BaseActivity : AppCompatActivity() {
 
     abstract val hasRemovableItems: Boolean
 
-    var mService: DownloadsService? = null
-    private var mBound = false
+    private var mServiceIntent: Intent? = null
 
-    override fun onStart() {
-        super.onStart()
-        val intent = Intent(this, DownloadsService::class.java)
-        Log.d(LOG_TAG, "Binding the service")
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+    /**
+     * Start a download for the given comic.
+     */
+    fun startDownload(comic: Item) {
+        val bundle = Bundle()
+        bundle.putSerializable("comic", comic)
+        mServiceIntent = Intent(this, DownloadsService::class.java)
+        mServiceIntent!!.putExtras(bundle)
+        this.startService(mServiceIntent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(LOG_TAG, "Unbinding the service")
-        unbindService(mConnection)
+    /**
+     * Remove the given comic from the downloads.
+     */
+    fun removeDownload(comic: Item) {
+        Utils.removeComicDownload(this, comic)
     }
-
-    /** Defines callbacks for service binding, passed to bindService()  */
-    private val mConnection = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName,
-                                        service: IBinder) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            val binder = service as DownloadsService.LocalBinder
-            mService = binder.getService
-            mBound = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
-        }
-    }
-
 }

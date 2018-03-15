@@ -1,35 +1,75 @@
 package com.jgasteiz.readcomicsandroid.services
 
-import android.app.Service
+import android.app.IntentService
 import android.content.Intent
-import android.os.Binder
-import android.os.IBinder
+import android.util.Log
+import com.jgasteiz.readcomicsandroid.helpers.DownloadComicAsyncTask
 import com.jgasteiz.readcomicsandroid.helpers.Utils
+import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
+import com.jgasteiz.readcomicsandroid.interfaces.OnComicDownloaded
+import com.jgasteiz.readcomicsandroid.interfaces.OnPageDownloaded
 import com.jgasteiz.readcomicsandroid.models.Item
 import java.util.*
 
 
-class DownloadsService: Service() {
+class DownloadsService: IntentService("DownloadsService") {
 
-    private val mBinder = LocalBinder()
-    private val mGenerator = Random()
+    companion object {
+        val DOWNLOAD_NOTIFICATION_ID = 1
+        val LOG_TAG = DownloadsService::class.java.simpleName
+    }
+
+    var downloads: HashMap<String, Int> = HashMap()
+
+    override fun onHandleIntent(intent: Intent?) {
+        val bundle = intent?.getExtras()
+        val comic: Item = bundle?.getSerializable("comic") as Item
+        this.downloadComic(comic)
+    }
+
+    // TODO: Make this work so we can broadcast download progress.
+    // Defines and instantiates an object for handling status updates.
+//    private val mBroadcaster = BroadcastNotifier(this)
 
     /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
+     * Download a comic.
      */
-    inner class LocalBinder : Binder() {
-        internal// Return this instance of LocalService so clients can call public methods
-        val getService: DownloadsService
-            get() = this@DownloadsService
-    }
+    fun downloadComic (comic: Item) {
+        downloads[comic.path] = 0
+        val context = this
 
-    override fun onBind(p0: Intent?): IBinder {
-        return mBinder
-    }
+        // TODO: Do this properly
+//        @SuppressLint("NewApi")
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val notificationHelper = NotificationHelper(context)
+//            val notification = notificationHelper.getNotification("Downloading ${comic.name}", "Downloading ${comic.name}")
+//            notificationHelper.notify(DOWNLOAD_NOTIFICATION_ID, notification)
+//        }
 
-    fun downloadComic(comic: Item) {
-        // TODO: move all the download logic to the Service.
-        Utils.downloadComic(this, comic)
+        // First, get the number of pages of the comic.
+        Utils.fetchComicDetails(comic.path, object : OnComicDetailsFetched {
+            override fun callback(numPages: Int) {
+
+                comic.numPages = numPages
+
+                // When done, download the actual comic.
+                val task = DownloadComicAsyncTask(
+                        context,
+                        comic,
+                        object : OnPageDownloaded {
+                            override fun callback(percentage: Int) {
+                                downloads[comic.path] = percentage
+                                Log.d(LOG_TAG, "Download progress: ${percentage}%")
+                            }
+                        }, object : OnComicDownloaded {
+                    override fun callback() {
+                        downloads[comic.path] = 100
+                        Log.d(LOG_TAG, "Download progress: 100%")
+                    }
+                }
+                )
+                task.execute()
+            }
+        })
     }
 }

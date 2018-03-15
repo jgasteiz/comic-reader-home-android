@@ -1,7 +1,5 @@
 package com.jgasteiz.readcomicsandroid.helpers
 
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -17,23 +15,17 @@ import java.io.File
 import java.util.*
 import android.util.Base64
 import java.nio.charset.Charset
-import android.os.Build
 
 
 object Utils {
 
     private val LOG_TAG = Utils::class.java.simpleName
-    private val CHANNEL_ID = Utils::class.java.simpleName
-    private val DOWNLOAD_NOTIFICATION_ID = 1
-
-    var downloads: HashMap<String, Int> = HashMap()
 
     // TODO: move this to some settings.
-    private val SERVER_ADDRESS = "192.168.0.28"
-
-    private val DIRECTORY_API_URL = "http://${SERVER_ADDRESS}/api/directory/"
-    private val COMIC_DETAIL_API_URL = "http://${SERVER_ADDRESS}/api/comic/"
-    private val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
+    val SERVER_ADDRESS = "192.168.0.28"
+    val DIRECTORY_API_URL = "http://${SERVER_ADDRESS}/api/directory/"
+    val COMIC_DETAIL_API_URL = "http://${SERVER_ADDRESS}/api/comic/"
+    val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
 
     /**
      * Returns whether there's a network available.
@@ -141,45 +133,6 @@ object Utils {
     }
 
     /**
-     * Download the given comic.
-     */
-    fun downloadComic (context: Context, comic: Item) {
-        downloads[comic.path] = 0
-
-        // TODO: deal with this in a better way
-        @SuppressLint("NewApi")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationHelper = NotificationHelper(context)
-            val notification = notificationHelper.getNotification("Downloading ${comic.name}", "Downloading ${comic.name}")
-            notificationHelper.notify(DOWNLOAD_NOTIFICATION_ID, notification)
-        }
-
-        // First, get the number of pages of the comic.
-        Utils.fetchComicDetails(comic.path, object : OnComicDetailsFetched {
-            override fun callback(numPages: Int) {
-
-                comic.numPages = numPages
-
-                // When done, download the actual comic.
-                val task = DownloadComicAsyncTask(
-                    context,
-                    comic,
-                    object : OnPageDownloaded {
-                        override fun callback(percentage: Int) {
-                            downloads[comic.path] = percentage
-                        }
-                    }, object : OnComicDownloaded {
-                        override fun callback() {
-                            downloads[comic.path] = 100
-                        }
-                    }
-                )
-                task.execute()
-            }
-        })
-    }
-
-    /**
      * Checks if a given comic has been downloaded and return true if it has.
      * @param context Context instance
      * *
@@ -189,8 +142,6 @@ object Utils {
         // A comic is offline if its directory exists and either it's download is complete or
         // there's no download record of it.
         return getComicDirectory(context, comic).exists()
-                && (!downloads.containsKey(comic.path)
-                    || downloads[comic.path] == 100)
     }
 
     /**

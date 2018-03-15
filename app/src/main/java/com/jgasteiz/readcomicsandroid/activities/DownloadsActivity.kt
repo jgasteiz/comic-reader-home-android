@@ -11,8 +11,8 @@ import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapter
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
-
 import kotlinx.android.synthetic.main.activity_downloads.*
+
 
 class DownloadsActivity : BaseActivity() {
 
@@ -49,11 +49,26 @@ class DownloadsActivity : BaseActivity() {
         recyclerView.addItemDecoration(dividerItemDecoration)
         recyclerView.layoutManager = linearLayoutManager
 
-        val adapter = ItemListAdapter(this, itemList) {
-            val intent = Intent(this, ReadingActivity::class.java)
-            intent.putExtra("comic", it)
-            startActivity(intent)
-        }
+        val adapter = ItemListAdapter(
+                this,
+                itemList,
+                onItemClick = ::onItemClick,
+                onDownloadClick = null,
+                onRemoveClick = {
+                    removeDownload(it)
+                    itemList.remove(it);
+                    true
+                }
+        )
         recyclerView.adapter = adapter
+    }
+
+    /**
+     * Comic click listener - go to ReadingActivity.
+     */
+    private fun onItemClick(comic: Item) {
+        val intent = Intent(this, ReadingActivity::class.java)
+        intent.putExtra("comic", comic)
+        startActivity(intent)
     }
 }

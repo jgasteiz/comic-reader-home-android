@@ -9,11 +9,14 @@ import java.net.SocketTimeoutException
 
 class GetStringResponseAsyncTask(private val mOnResponseFetched: OnResponseFetched) : AsyncTask<String, Void, String>() {
 
+    companion object {
+        val TIMEOUT = "TIMEOUT"
+        val NO_RESPONSE_BODY = "NO_RESPONSE_BODY"
+        val OTHER_ERROR = "OTHER_ERROR"
+    }
+
     private val client = OkHttpClient()
 
-    private val _timeout = "timeout"
-    private val _noResponseBody = "noResponseBody"
-    private val _otherError = "otherError"
 
     override fun doInBackground(vararg params: String): String? {
 
@@ -25,13 +28,13 @@ class GetStringResponseAsyncTask(private val mOnResponseFetched: OnResponseFetch
             if (response?.body() != null) {
                 return response.body()!!.string()
             }
-            return this._noResponseBody
+            return NO_RESPONSE_BODY
         } catch (e: SocketTimeoutException) {
             e.printStackTrace()
-            return this._timeout
+            return TIMEOUT
         } catch (e: Exception) {
             e.printStackTrace()
-            return this._otherError
+            return OTHER_ERROR
         }
     }
 
