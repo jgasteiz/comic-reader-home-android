@@ -1,6 +1,9 @@
 package com.jgasteiz.readcomicsandroid.activities
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.LinearLayoutManager
@@ -13,11 +16,16 @@ import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import android.support.v7.widget.DividerItemDecoration
+import com.jgasteiz.readcomicsandroid.helpers.Constants
+import com.jgasteiz.readcomicsandroid.services.DownloadsService
 
 
 class DirectoryActivity() : BaseActivity() {
 
     private var mCurrentDirectory: Item? = null
+
+    private var mAdapter: ItemListAdapter? = null
+    private var mItemList: ArrayList<Item>? = null
 
     override val hasRemovableItems = false
 
@@ -33,6 +41,22 @@ class DirectoryActivity() : BaseActivity() {
         }
 
         loadCurrentDirectory()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Register the broadcast receiver.
+        val filter = IntentFilter()
+        filter.addAction(Constants.ACTION_DOWNLOAD_START)
+        filter.addAction(Constants.ACTION_DOWNLOAD_PROGRESS)
+        filter.addAction(Constants.ACTION_DOWNLOAD_END)
+        registerReceiver(broadcastReceiver, filter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Unregister the listener when the application is paused.
+        unregisterReceiver(broadcastReceiver)
     }
 
     /**
@@ -76,6 +100,7 @@ class DirectoryActivity() : BaseActivity() {
             Toast.makeText(this, "There are no items to load. Make sure the server is working well.", Toast.LENGTH_LONG).show()
             return
         }
+        mItemList = itemList
 
         val recyclerView = findViewById<RecyclerView>(R.id.itemList)
         val linearLayoutManager = LinearLayoutManager(this)
@@ -83,9 +108,9 @@ class DirectoryActivity() : BaseActivity() {
         recyclerView.addItemDecoration(dividerItemDecoration)
         recyclerView.layoutManager = linearLayoutManager
 
-        val adapter = ItemListAdapter(
+        mAdapter = ItemListAdapter(
                 this,
-                itemList,
+                mItemList!!,
                 onItemClick = ::onItemClick,
                 onDownloadClick = ::startDownload,
                 onRemoveClick = {
@@ -93,7 +118,7 @@ class DirectoryActivity() : BaseActivity() {
                     false
                 }
         )
-        recyclerView.adapter = adapter
+        recyclerView.adapter = mAdapter
     }
 
     /**
@@ -121,6 +146,41 @@ class DirectoryActivity() : BaseActivity() {
 
             mCurrentDirectory = item
             loadCurrentDirectory()
+        }
+    }
+
+    /**
+     * Start a download for the given comic.
+     */
+    fun startDownload(comic: Item) {
+        val bundle = Bundle()
+        bundle.putSerializable("comic", comic)
+        val downloadIntent = Intent(this, DownloadsService::class.java)
+        downloadIntent.putExtras(bundle)
+        this.startService(downloadIntent)
+    }
+
+
+    /**
+     * Receive broadcasts about items being downloaded, update the comic on the item list
+     * and notify the adapter.
+     */
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Constants.ACTION_DOWNLOAD_START) {
+                val resultValue = intent.getStringExtra("resultValue")
+                Toast.makeText(context, resultValue, Toast.LENGTH_SHORT).show()
+                val comic = intent.getSerializableExtra("comic") as Item
+                mItemList?.find { s -> s.path == comic.path }?.isComicDownloading = true
+                mAdapter?.notifyDataSetChanged()
+            } else if (intent.action == Constants.ACTION_DOWNLOAD_END) {
+                val resultValue = intent.getStringExtra("resultValue")
+                Toast.makeText(context, resultValue, Toast.LENGTH_SHORT).show()
+                val comic = intent.getSerializableExtra("comic") as Item
+                mItemList?.find { s -> s.path == comic.path }?.isComicDownloading = false
+                mItemList?.find { s -> s.path == comic.path }?.isComicOffline = true
+                mAdapter?.notifyDataSetChanged()
+            }
         }
     }
 }

@@ -55,7 +55,11 @@ object Utils {
 
                     (0 until comicsJson.length())
                             .map { comicsJson.get(it) as JSONObject }
-                            .mapTo(itemList) { Item(it, ItemType.COMIC) }
+                            .mapTo(itemList) {
+                                val comic = Item(it, ItemType.COMIC)
+                                comic.isComicOffline = Utils.isComicOffline(context, comic)
+                                comic
+                            }
                     (0 until directoriesJson.length())
                             .map { directoriesJson.get(it) as JSONObject }
                             .mapTo(itemList) { Item(it, ItemType.DIRECTORY) }
@@ -180,7 +184,9 @@ object Utils {
                     val name = Base64.decode(it.name, android.util.Base64.DEFAULT)
                     val decodedPath = String(name, Charset.defaultCharset())
                     val decodedName = decodedPath.split("/").last()
-                    Item(decodedName, it.name, ItemType.COMIC)
+                    val comic = Item(decodedName, it.name, ItemType.COMIC)
+                    comic.isComicOffline = Utils.isComicOffline(context, comic)
+                    comic
                 }
 
         // Sort them by name.

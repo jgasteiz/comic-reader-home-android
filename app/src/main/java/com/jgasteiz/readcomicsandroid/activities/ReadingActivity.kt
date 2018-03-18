@@ -54,7 +54,7 @@ class ReadingActivity : Activity() {
         mAttacher!!.setOnDoubleTapListener(OnDoubleTapListener())
 
         // If the comic is offline, get its number of pages straight away.
-        if (Utils.isComicOffline(this, mComic!!)) {
+        if (mComic!!.isComicOffline) {
             mComic!!.numPages = Utils.getOfflineComicNumPages(this, mComic!!)
             startReading()
         }
@@ -132,7 +132,7 @@ class ReadingActivity : Activity() {
         mProgressBar!!.visibility = View.VISIBLE
 
         // If the comic is offline, load the page from the local storage.
-        if (Utils.isComicOffline(this, mComic!!)) {
+        if (mComic!!.isComicOffline) {
             val pageBitmap = Utils.getOfflineComicPage(this, pageNumber, mComic!!)
             if (pageBitmap != null) {
                 mPageImageView!!.setImageBitmap(pageBitmap)

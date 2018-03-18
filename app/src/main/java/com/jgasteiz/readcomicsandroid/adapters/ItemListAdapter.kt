@@ -5,9 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.activities.BaseActivity
-import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
 import com.jgasteiz.readcomicsandroid.models.ItemType
 import kotlinx.android.synthetic.main.list_item.view.*
@@ -21,20 +21,23 @@ class ItemListAdapter(private val context: BaseActivity,
                       private val onRemoveClick: (Item) -> Boolean) : RecyclerView.Adapter<ItemListAdapter.ViewHolder>()
 {
 
-    private val LOG_TAG = ItemListAdapter::class.java.simpleName
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
         return ViewHolder(view, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindItem(itemList[position], context)
+        val item = itemList[position]
+        holder.bindItem(item, context)
 
-        if (Utils.isComicOffline(context, itemList[position])) {
-            setRemoveButton(holder.itemView, itemList[position])
-        } else {
-            setDownloadButton(holder.itemView, itemList[position])
+        if (item.type == ItemType.COMIC) {
+            if (item.isComicDownloading) {
+                setDownloadInProgress(holder.itemView)
+            } else if (item.isComicOffline) {
+                setRemoveButton(holder.itemView, item)
+            } else {
+                setDownloadButton(holder.itemView, item)
+            }
         }
     }
 
@@ -65,11 +68,28 @@ class ItemListAdapter(private val context: BaseActivity,
      * @param comic Comic instance
      */
     private fun setDownloadButton(cView: View, comic: Item) {
+        val progressText = cView.findViewById<TextView>(R.id.progress_text)
+        progressText.visibility = View.GONE
         val downloadButton = cView.findViewById<Button>(R.id.action_button)
+        downloadButton.visibility = View.VISIBLE
         downloadButton.text = context.getString(R.string.download_comic)
 
         // Download the comic when the download button is clicked.
         downloadButton.setOnClickListener { onDownloadClick?.invoke(comic) }
+    }
+
+    /**
+     * Change the action button to `download` a comic.
+     * @param cView View instance
+     * *
+     * @param comic Comic instance
+     */
+    private fun setDownloadInProgress(cView: View) {
+        val downloadButton = cView.findViewById<Button>(R.id.action_button)
+        downloadButton.visibility = View.GONE
+        val progressText = cView.findViewById<TextView>(R.id.progress_text)
+        progressText.visibility = View.VISIBLE
+        progressText.text = context.getString(R.string.downloading_comic)
     }
 
     /**
@@ -78,8 +98,11 @@ class ItemListAdapter(private val context: BaseActivity,
      * *
      * @param comic Comic instance
      */
-    private fun setRemoveButton(convertView: View, comic: Item) {
-        val removeComicButton = convertView.findViewById<Button>(R.id.action_button)
+    private fun setRemoveButton(cView: View, comic: Item) {
+        val progressText = cView.findViewById<TextView>(R.id.progress_text)
+        progressText.visibility = View.GONE
+        val removeComicButton = cView.findViewById<Button>(R.id.action_button)
+        removeComicButton.visibility = View.VISIBLE
         removeComicButton.text = context.getString(R.string.remove_download)
 
         // Remove the downloaded comic when the button is clicked.
@@ -87,42 +110,9 @@ class ItemListAdapter(private val context: BaseActivity,
             if (onRemoveClick(comic)) {
                 notifyDataSetChanged()
             } else {
-                setDownloadButton(convertView, comic)
+                setDownloadButton(cView, comic)
             }
         }
     }
-
-//    TODO: bring this back, but using the BroadcastNotifier.
-//    /**
-//     * Check whether a download is taking place for the given comic or not, and update its status.
-//     */
-//    private fun checkActiveDownload (comic: Item, convertView: View, progressTextView: TextView, downloadComicButton: Button) {
-//        if (Utils.downloads[comic.path] == null) {
-//            return
-//        }
-//
-//        val timer = Timer("checkDownloadProgress")
-//
-//        timer.schedule(object : TimerTask() {
-//            override fun run() {
-//                val progress = Utils.downloads[comic.path] as Int
-//                if (progress < 100) {
-//                    Log.d(LOG_TAG, "Download progress: $progress%")
-//                    (context as DirectoryActivity).runOnUiThread {
-//                        val percentage = "$progress%"
-//                        progressTextView.text = percentage
-//                    }
-//                } else {
-//                    Log.d(LOG_TAG, "Comic downloaded")
-//                    (context as DirectoryActivity).runOnUiThread {
-//                        setRemoveButton(convertView, comic)
-//                        progressTextView.visibility = View.GONE
-//                        downloadComicButton.visibility = View.VISIBLE
-//                    }
-//                    timer.cancel()
-//                }
-//            }
-//        }, 0, 1000)
-//    }
 
 }

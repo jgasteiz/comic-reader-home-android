@@ -16,6 +16,9 @@ class Item : Serializable {
     lateinit var path: String
     var parentDirectory: Item? = null
     var type: ItemType
+    // Flags to be used by the adapter.
+    var isComicOffline = false
+    var isComicDownloading = false
 
     // Only used when downloading a comic, otherwise this should be null.
     var numPages: Int? = null

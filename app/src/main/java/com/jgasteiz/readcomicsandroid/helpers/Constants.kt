@@ -2,8 +2,8 @@ package com.jgasteiz.readcomicsandroid.helpers
 
 class Constants {
     companion object {
-        val BROADCAST_ACTION = "BROADCAST_ACTION"
-        val EXTENDED_DATA_STATUS = "EXTENDED_DATA_STATUS"
-        val EXTENDED_STATUS_LOG = "EXTENDED_STATUS_LOG"
+        val ACTION_DOWNLOAD_START = "ACTION_DOWNLOAD_START"
+        val ACTION_DOWNLOAD_PROGRESS = "ACTION_DOWNLOAD_PROGRESS"
+        val ACTION_DOWNLOAD_END = "ACTION_DOWNLOAD_END"
     }
 }

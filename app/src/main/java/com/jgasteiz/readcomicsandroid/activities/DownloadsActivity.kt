@@ -1,6 +1,8 @@
 package com.jgasteiz.readcomicsandroid.activities
 
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.DividerItemDecoration
@@ -9,6 +11,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapter
+import com.jgasteiz.readcomicsandroid.helpers.Constants
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.models.Item
 import kotlinx.android.synthetic.main.activity_downloads.*
