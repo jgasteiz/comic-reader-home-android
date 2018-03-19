@@ -29,6 +29,7 @@ class ReadingActivity : Activity() {
     private var mAttacher: PhotoViewAttacher? = null
     private var mProgressBar: ProgressBar? = null
     private var mComic: Item? = null
+    private var mScale: Float? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,6 +138,7 @@ class ReadingActivity : Activity() {
             if (pageBitmap != null) {
                 mPageImageView!!.setImageBitmap(pageBitmap)
                 mAttacher!!.update()
+                fitToPreviousScale()
             } else {
                 noMorePagesToLoad()
             }
@@ -153,6 +155,7 @@ class ReadingActivity : Activity() {
                         mProgressBar!!.visibility = View.GONE
                         mPageImageView!!.visibility = View.VISIBLE
                         mAttacher!!.update()
+                        fitToPreviousScale()
                     }
                     override fun onError() {
                         noMorePagesToLoad()
@@ -304,5 +307,12 @@ class ReadingActivity : Activity() {
             mAttacher?.maximumScale = scale * 2
         }
         mAttacher?.setScale(scale, true)
+        mScale = scale
+    }
+
+    private fun fitToPreviousScale() {
+        if (mScale != null) {
+            mAttacher?.setScale(mScale!!, false)
+        }
     }
 }
