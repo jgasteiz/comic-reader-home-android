@@ -43,9 +43,12 @@ class DirectoryActivity() : BaseActivity() {
         loadCurrentDirectory()
     }
 
+    /**
+     * Create an intent filter with actions we'll listen for and register
+     * the broadcast receiver.
+     */
     override fun onResume() {
         super.onResume()
-        // Register the broadcast receiver.
         val filter = IntentFilter()
         filter.addAction(Constants.ACTION_DOWNLOAD_START)
         filter.addAction(Constants.ACTION_DOWNLOAD_PROGRESS)
@@ -53,9 +56,11 @@ class DirectoryActivity() : BaseActivity() {
         registerReceiver(broadcastReceiver, filter)
     }
 
+    /**
+     * Unregister the broadcast receiver.
+     */
     override fun onPause() {
         super.onPause()
-        // Unregister the listener when the application is paused.
         unregisterReceiver(broadcastReceiver)
     }
 
@@ -162,8 +167,9 @@ class DirectoryActivity() : BaseActivity() {
 
 
     /**
-     * Receive broadcasts about items being downloaded, update the comic on the item list
-     * and notify the adapter.
+     * Receive broadcasts about items being downloaded. When an item starts
+     * or finishes being downloaded, update the item on the list and notify
+     * the adapter so it can reload the recyclerview.
      */
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

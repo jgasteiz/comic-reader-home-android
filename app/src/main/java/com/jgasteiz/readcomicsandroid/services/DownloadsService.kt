@@ -22,14 +22,12 @@ class DownloadsService: IntentService("DownloadsService") {
     override fun onHandleIntent(intent: Intent?) {
         val bundle = intent?.getExtras()
         val comic: Item = bundle?.getSerializable("comic") as Item
-        this.downloadComic(comic)
 
-        // Construct an Intent tying it to the ACTION_DOWNLOAD_START
-        val broadcastIntent = Intent(Constants.ACTION_DOWNLOAD_START)
-        broadcastIntent.putExtra("resultCode", Activity.RESULT_OK)
-        broadcastIntent.putExtra("resultValue", "Download started")
-        broadcastIntent.putExtra("comic", comic)
-        sendBroadcast(broadcastIntent)
+        // Start the comic download.
+        downloadComic(comic)
+
+        // Broadcast the download start action
+        broadcastDownloadStart(comic)
     }
 
     /**
@@ -55,16 +53,35 @@ class DownloadsService: IntentService("DownloadsService") {
                         }, object : OnComicDownloaded {
                     override fun callback() {
                         Log.d(LOG_TAG, "Download progress: 100%")
-                        val broadcastIntent = Intent(Constants.ACTION_DOWNLOAD_END)
-                        broadcastIntent.putExtra("resultCode", Activity.RESULT_OK)
-                        broadcastIntent.putExtra("resultValue", "Download finished")
-                        broadcastIntent.putExtra("comic", comic)
-                        sendBroadcast(broadcastIntent)
+                        broadcastDownloadEnd(comic)
                     }
                 }
                 )
                 task.execute()
             }
         })
+    }
+
+    /**
+     * Broadacst ACTION_DOWNLOAD_START with the comic which download has
+     * been started.
+     */
+    fun broadcastDownloadStart(comic: Item) {
+        val broadcastIntent = Intent(Constants.ACTION_DOWNLOAD_START)
+        broadcastIntent.putExtra("resultCode", Activity.RESULT_OK)
+        broadcastIntent.putExtra("resultValue", "Download started")
+        broadcastIntent.putExtra("comic", comic)
+        sendBroadcast(broadcastIntent)
+    }
+
+    /**
+     * Broadacst ACTION_DOWNLOAD_END with the comic which download has ended.
+     */
+    fun broadcastDownloadEnd(comic: Item) {
+        val broadcastIntent = Intent(Constants.ACTION_DOWNLOAD_END)
+        broadcastIntent.putExtra("resultCode", Activity.RESULT_OK)
+        broadcastIntent.putExtra("resultValue", "Download finished")
+        broadcastIntent.putExtra("comic", comic)
+        sendBroadcast(broadcastIntent)
     }
 }
