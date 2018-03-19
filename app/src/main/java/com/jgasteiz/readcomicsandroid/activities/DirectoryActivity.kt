@@ -179,6 +179,11 @@ class DirectoryActivity() : BaseActivity() {
                 val comic = intent.getSerializableExtra("comic") as Item
                 mItemList?.find { s -> s.path == comic.path }?.isComicDownloading = true
                 mAdapter?.notifyDataSetChanged()
+            } else if (intent.action == Constants.ACTION_DOWNLOAD_PROGRESS) {
+                val resultValue = intent.getStringExtra("resultValue")
+                val comic = intent.getSerializableExtra("comic") as Item
+                mItemList?.find { s -> s.path == comic.path }?.downloadProgress = resultValue
+                mAdapter?.notifyDataSetChanged()
             } else if (intent.action == Constants.ACTION_DOWNLOAD_END) {
                 val resultValue = intent.getStringExtra("resultValue")
                 Toast.makeText(context, resultValue, Toast.LENGTH_SHORT).show()

@@ -19,6 +19,7 @@ class Item : Serializable {
     // Flags to be used by the adapter.
     var isComicOffline = false
     var isComicDownloading = false
+    var downloadProgress = ""
 
     // Only used when downloading a comic, otherwise this should be null.
     var numPages: Int? = null

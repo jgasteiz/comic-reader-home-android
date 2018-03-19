@@ -32,7 +32,7 @@ class ItemListAdapter(private val context: BaseActivity,
 
         if (item.type == ItemType.COMIC) {
             if (item.isComicDownloading) {
-                setDownloadInProgress(holder.itemView)
+                setDownloadInProgress(holder.itemView, item)
             } else if (item.isComicOffline) {
                 setRemoveButton(holder.itemView, item)
             } else {
@@ -84,12 +84,12 @@ class ItemListAdapter(private val context: BaseActivity,
      * *
      * @param comic Comic instance
      */
-    private fun setDownloadInProgress(cView: View) {
+    private fun setDownloadInProgress(cView: View, comic: Item) {
         val downloadButton = cView.findViewById<Button>(R.id.action_button)
         downloadButton.visibility = View.GONE
         val progressText = cView.findViewById<TextView>(R.id.progress_text)
         progressText.visibility = View.VISIBLE
-        progressText.text = context.getString(R.string.downloading_comic)
+        progressText.text = comic.downloadProgress
     }
 
     /**
