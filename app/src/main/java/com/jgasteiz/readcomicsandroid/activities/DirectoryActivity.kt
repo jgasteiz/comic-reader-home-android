@@ -38,6 +38,7 @@ class DirectoryActivity() : BaseActivity() {
         downloadButtonView.setOnClickListener { _ ->
             val intent = Intent(this, DownloadsActivity::class.java)
             startActivity(intent)
+            finish()
         }
 
         loadCurrentDirectory()

@@ -33,6 +33,7 @@ class DownloadsActivity : BaseActivity() {
         downloadButtonView.setOnClickListener { _ ->
             val intent = Intent(this, DirectoryActivity::class.java)
             startActivity(intent)
+            finish()
         }
 
         // Get offline comics
