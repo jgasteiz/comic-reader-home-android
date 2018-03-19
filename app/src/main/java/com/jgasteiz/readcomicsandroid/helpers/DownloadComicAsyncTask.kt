@@ -27,11 +27,11 @@ class DownloadComicAsyncTask internal constructor(
      */
     override fun doInBackground(vararg params: Void): Boolean {
         // Create a directory for the comic
-        val comicDirectoryPath = String.format("%s%s%s", mFilesDir, File.separator, mComic.path)
+        val comicDirectoryPath = "$mFilesDir${java.io.File.separator}${mComic.path}"
         val comicDirectory = File(comicDirectoryPath)
         val directoryCreated = comicDirectory.mkdirs()
         if (directoryCreated) {
-            Log.d(LOG_TAG, String.format("Comic directory %s created", comicDirectory.absolutePath))
+            Log.d(LOG_TAG, "Comic directory ${comicDirectory.absolutePath} created")
         }
 
         if (mComic.numPages == null) {
@@ -49,11 +49,11 @@ class DownloadComicAsyncTask internal constructor(
                     val request = Request.Builder().url(pageUrl).build()
                     val response = client.newCall(request).execute()
                     if (!response.isSuccessful) {
-                        throw IOException("Failed to download file: " + response)
+                        throw IOException("Failed to download file: $response")
                     }
                     val fileNameParts = pageUrl.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     val fileName = fileNameParts[fileNameParts.size - 1]
-                    val fos = FileOutputStream(String.format("%s%s%s", comicDirectoryPath, File.separator, fileName))
+                    val fos = FileOutputStream("$comicDirectoryPath${java.io.File.separator}$fileName")
                     fos.write(response.body()!!.bytes())
                     fos.close()
                 } catch (e: IOException) {
