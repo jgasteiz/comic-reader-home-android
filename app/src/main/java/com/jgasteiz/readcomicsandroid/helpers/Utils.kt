@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.util.Log
 import com.jgasteiz.readcomicsandroid.interfaces.*
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -14,6 +15,7 @@ import org.json.JSONObject
 import java.io.File
 import java.util.*
 import android.util.Base64
+import java.net.URI
 import java.nio.charset.Charset
 
 
@@ -124,6 +126,22 @@ object Utils {
             val pageFile = comicDirectory.listFiles()[pageNumber]
             if (pageFile.exists()) {
                 return BitmapFactory.decodeFile(pageFile.absolutePath)
+            }
+        }
+        return null
+    }
+
+    /**
+     * Return the downloaded page of the given comic with the given page number.
+     */
+    fun getOfflineComicPageUri(context: Context, pageNumber: Int, comic: Item): String? {
+        // Return the offline page
+        val comicDirectory = getComicDirectory(context, comic)
+
+        if (pageNumber < comicDirectory.listFiles().count() && pageNumber > -1) {
+            val pageFile = comicDirectory.listFiles()[pageNumber]
+            if (pageFile.exists()) {
+                return Uri.fromFile(pageFile).toString()
             }
         }
         return null

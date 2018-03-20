@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -26,18 +27,9 @@
     <!--android:layout_height="wrap_content" />-->
     <!--</LinearLayout>-->
 
-    <ImageView
+    <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/active_page"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/active_page"
-        android:src="@mipmap/flash"
-        app:srcCompat="@mipmap/flash" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyle"
-        android:layout_width="80dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:id="@+id/progress_bar"/>
+        />
 </LinearLayout>

@@ -1,35 +1,29 @@
 package com.jgasteiz.readcomicsandroid.activities
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.Toast
+import com.facebook.drawee.view.SimpleDraweeView
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
 import com.jgasteiz.readcomicsandroid.models.Item
-import com.squareup.picasso.Callback
-import com.squareup.picasso.Picasso
-import uk.co.senab.photoview.PhotoViewAttacher
-import kotlin.math.max
+import android.graphics.PointF
+import com.facebook.drawee.drawable.ScalingUtils
+import android.view.GestureDetector
+import android.view.MotionEvent
 
 
 class ReadingActivity : Activity() {
 
     private val LOG_TAG = ReadingActivity::class.java.simpleName
-
     private var mCurrentPageIndex = 0
-
-    private var mPageImageView: ImageView? = null
-    private var mAttacher: PhotoViewAttacher? = null
-    private var mProgressBar: ProgressBar? = null
+    private var mDraweeViewGestureDetector: GestureDetector? = null
+    private var mSimpleDraweeView: SimpleDraweeView? = null
     private var mComic: Item? = null
-    private var mScale: Float? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,15 +38,20 @@ class ReadingActivity : Activity() {
             return
         }
 
-        // Initialize the progress bar.
-        mProgressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        mProgressBar!!.visibility = View.GONE
         // Initialize the main image view.
-        mPageImageView = findViewById<ImageView>(R.id.active_page)
-        // Attach a PhotoView attacher to it.
-        mAttacher = PhotoViewAttacher(mPageImageView!!)
-        // Set a custom single tap listener for navigating through the comic.
-        mAttacher!!.setOnDoubleTapListener(OnDoubleTapListener())
+        mSimpleDraweeView = findViewById(R.id.active_page)
+
+        // Initialize the gesture detector.
+        mDraweeViewGestureDetector = GestureDetector(this, ReaderGestureListener())
+
+        // Set the touch listener and let the gesture detector deal with it.
+        // TODO: remove the performClick warning
+        mSimpleDraweeView?.setOnTouchListener({ v, event ->
+            mDraweeViewGestureDetector!!.onTouchEvent(event)
+        })
+
+        // Set the initial scale type.
+        setScaleType(resources.configuration.orientation)
 
         // If the comic is offline, get its number of pages straight away.
         if (mComic!!.isComicOffline) {
@@ -68,12 +67,30 @@ class ReadingActivity : Activity() {
                 }
             })
         }
+    }
 
-        // DEBUG Scale buttons
-        // val fitWidthButton = findViewById<Button>(R.id.fit_width)
-        // fitWidthButton.setOnClickListener { fitWidth() }
-        // val fitHeightButton = findViewById<Button>(R.id.fit_height)
-        // fitHeightButton.setOnClickListener { fitHeight() }
+    /**
+     * On device rotation, reset the scale type.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig != null) {
+            setScaleType(newConfig.orientation)
+        }
+    }
+
+    /**
+     * Set the scale type depending on the device orientation.
+     * Portrait: fit the page.
+     * Landscape: fit width, focus on top.
+     */
+    private fun setScaleType(orientation: Int) {
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            mSimpleDraweeView?.hierarchy?.actualImageScaleType = ScalingUtils.ScaleType.CENTER_INSIDE
+        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mSimpleDraweeView?.hierarchy?.actualImageScaleType = ScalingUtils.ScaleType.FOCUS_CROP
+            mSimpleDraweeView?.hierarchy?.setActualImageFocusPoint(PointF(0.5f, 0f))
+        }
     }
 
     /**
@@ -129,79 +146,16 @@ class ReadingActivity : Activity() {
      * @param pageNumber Integer, index of the page to load.
      */
     private fun loadPageWithIndex(pageNumber: Int) {
-        mPageImageView!!.visibility = View.GONE
-        mProgressBar!!.visibility = View.VISIBLE
-
         // If the comic is offline, load the page from the local storage.
         if (mComic!!.isComicOffline) {
-            val pageBitmap = Utils.getOfflineComicPage(this, pageNumber, mComic!!)
-            if (pageBitmap != null) {
-                mPageImageView!!.setImageBitmap(pageBitmap)
-                mAttacher!!.update()
-                fitToPreviousScale()
+            val pageUri = Utils.getOfflineComicPageUri(this, pageNumber, mComic!!)
+            if (pageUri != null) {
+                mSimpleDraweeView!!.setImageURI(pageUri)
             } else {
                 noMorePagesToLoad()
             }
-            mProgressBar!!.visibility = View.GONE
-            mPageImageView!!.visibility = View.VISIBLE
-        }
-        // Otherwise load it using Picasso
-        else {
-            Picasso
-                .with(this)
-                .load(Utils.getComicPageUrl(mComic!!, pageNumber))
-                .into(mPageImageView!!, object : Callback {
-                    override fun onSuccess() {
-                        mProgressBar!!.visibility = View.GONE
-                        mPageImageView!!.visibility = View.VISIBLE
-                        mAttacher!!.update()
-                        fitToPreviousScale()
-                    }
-                    override fun onError() {
-                        noMorePagesToLoad()
-                        loadPageWithIndex(mCurrentPageIndex)
-                    }
-                })
-        }
-    }
-
-    /**
-     * Custom double tap listener for:
-     * 1 - onSingleTapConfirmed loading the next or the previous comic page,
-     * depending on where the user taps on the screen:
-     * 15% left side of the screen -> previous page.
-     * 15% right side of the screen -> next page.
-     * 2 - fit to width/height or back to scale 1.
-     * @return GestureDetector.OnDoubleTapListener, custom tap listener.
-     */
-    private inner class OnDoubleTapListener : GestureDetector.OnDoubleTapListener {
-        override fun onDoubleTap(p0: MotionEvent?): Boolean {
-            val fitWidthScale = getFitWidthScale()
-            val fitHeightScale = getFitHeightScale()
-
-            if (fitWidthScale != null && fitHeightScale != null) {
-                val biggestScale = max(fitWidthScale, fitHeightScale)
-                if (biggestScale > mAttacher!!.scale) {
-                    fitToScale(biggestScale)
-                } else {
-                    fitToScale(1F)
-                }
-            }
-            return true
-        }
-
-        override fun onDoubleTapEvent(p0: MotionEvent?): Boolean {
-            return true
-        }
-
-        override fun onSingleTapConfirmed(p0: MotionEvent?): Boolean {
-            val touchRightPosition = (100 * p0!!.x / mPageImageView!!.width).toInt()
-            when {
-                touchRightPosition > 85 -> loadNextPage()
-                touchRightPosition < 15 -> loadPreviousPage()
-                else -> setImmersiveMode()
-            }
-            return true
+        } else {
+            mSimpleDraweeView?.setImageURI(Utils.getComicPageUrl(mComic!!, pageNumber))
         }
     }
 
@@ -218,101 +172,19 @@ class ReadingActivity : Activity() {
                         View.SYSTEM_UI_FLAG_IMMERSIVE
     }
 
-    // Aspect ratio related functions
-
-    private fun getImageViewValues(): ArrayList<Float>? {
-        val imageViewWidth = mAttacher?.imageView?.width?.toFloat()
-        val imageViewHeight = mAttacher?.imageView?.height?.toFloat()
-        Log.d(LOG_TAG, imageViewWidth.toString())
-        Log.d(LOG_TAG, imageViewHeight.toString())
-
-        val pageWidth = mAttacher?.imageView?.drawable?.intrinsicWidth?.toFloat()
-        val pageHeight = mAttacher?.imageView?.drawable?.intrinsicHeight?.toFloat()
-        Log.d(LOG_TAG, pageWidth.toString())
-        Log.d(LOG_TAG, pageHeight.toString())
-
-        if (imageViewWidth == null || imageViewHeight == null || pageWidth == null || pageHeight == null) {
-            return null
-        }
-        val result = ArrayList<Float>()
-        result.add(imageViewWidth)
-        result.add(imageViewHeight)
-        result.add(pageWidth)
-        result.add(pageHeight)
-        return result
-    }
-
-    private fun getFitWidthScale(): Float? {
-        val imageViewValues = getImageViewValues() ?: return null
-        val imageViewWidth = imageViewValues[0]
-        val imageViewHeight = imageViewValues[1]
-        val pageWidth = imageViewValues[2]
-        val pageHeight = imageViewValues[3]
-
-        val imageViewAspectRatio = imageViewWidth / imageViewHeight
-        val pageProportions = pageWidth / pageHeight
-
-        // If the image view aspect ratio is lower than the page, we
-        // know scale 1 will be fit width.
-        return if (imageViewAspectRatio <= pageProportions) {
-            1F
-        } else {
-            // We know the image is fit to height.
-            val pageScale = pageHeight / imageViewHeight
-            // Calculate how much width of the image view is being used by the page.
-            val pageWidthOnImageView = pageWidth / pageScale
-            // Calculate the new scale we need to set in order to cover the
-            // image view width with the page.
-            imageViewWidth / pageWidthOnImageView
-        }
-    }
-
-    private fun getFitHeightScale(): Float? {
-        val imageViewValues = getImageViewValues() ?: return null
-        val imageViewWidth = imageViewValues[0]
-        val imageViewHeight = imageViewValues[1]
-        val pageWidth = imageViewValues[2]
-        val pageHeight = imageViewValues[3]
-
-        val imageViewAspectRatio = imageViewWidth / imageViewHeight
-        val pageProportions = pageWidth / pageHeight
-
-        // If the image view aspect ratio is higher than the page, we
-        // know scale 1 will be fit width.
-        return if (imageViewAspectRatio >= pageProportions) {
-            1F
-        } else {
-            // We know the image is fit to width.
-            val pageScale = pageWidth / imageViewWidth
-            // Calculate how much height of the image view is being used by the page.
-            val pageHeightOnImageView = pageHeight / pageScale
-            // Calculate the new scale we need to set in order to cover the
-            // image view height with the page.
-            imageViewHeight / pageHeightOnImageView
-        }
-    }
-
-    private fun fitWidth() {
-        val newScale = getFitWidthScale()?: return
-        fitToScale(newScale)
-    }
-
-    private fun fitHeight() {
-        val newScale = getFitHeightScale()?: return
-        fitToScale(newScale)
-    }
-
-    private fun fitToScale(scale:Float) {
-        if (mAttacher?.maximumScale!! < scale) {
-            mAttacher?.maximumScale = scale * 2
-        }
-        mAttacher?.setScale(scale, true)
-        mScale = scale
-    }
-
-    private fun fitToPreviousScale() {
-        if (mScale != null) {
-            mAttacher?.setScale(mScale!!, false)
+    /**
+     * Class for detecting gestures on the mSimpleDraweeView.
+     */
+    internal inner class ReaderGestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(event: MotionEvent): Boolean {
+            Log.d("TAG", "onDown: ")
+            val touchRightPosition = (100 * event.x / mSimpleDraweeView!!.width).toInt()
+            when {
+                touchRightPosition > 85 -> loadNextPage()
+                touchRightPosition < 15 -> loadPreviousPage()
+                else -> setImmersiveMode()
+            }
+            return true
         }
     }
 }
