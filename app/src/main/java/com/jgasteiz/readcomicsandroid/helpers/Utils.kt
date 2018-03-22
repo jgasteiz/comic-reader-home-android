@@ -1,8 +1,6 @@
 package com.jgasteiz.readcomicsandroid.helpers
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.util.Log
@@ -13,10 +11,9 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
-import java.util.*
 import android.util.Base64
-import java.net.URI
 import java.nio.charset.Charset
+import kotlin.collections.ArrayList
 
 
 object Utils {
@@ -116,35 +113,30 @@ object Utils {
     }
 
     /**
-     * Return the downloaded page of the given comic with the given page number.
+     * Get a list of page urls for an online comic.
      */
-    fun getOfflineComicPage(context: Context, pageNumber: Int, comic: Item): Bitmap? {
-        // Return the offline page
-        val comicDirectory = getComicDirectory(context, comic)
-
-        if (pageNumber < comicDirectory.listFiles().count() && pageNumber > -1) {
-            val pageFile = comicDirectory.listFiles()[pageNumber]
-            if (pageFile.exists()) {
-                return BitmapFactory.decodeFile(pageFile.absolutePath)
-            }
+    fun getOnlineComicPageUriList(comic: Item): ArrayList<String> {
+        val pageList = ArrayList<String>()
+        for (i in 0 until comic.numPages!!) {
+            pageList.add(getComicPageUrl(comic, i))
         }
-        return null
+        return pageList
     }
 
     /**
-     * Return the downloaded page of the given comic with the given page number.
+     * Get a list of page urls for a downloaded comic.
      */
-    fun getOfflineComicPageUri(context: Context, pageNumber: Int, comic: Item): String? {
-        // Return the offline page
+    fun getOfflineComicPageUriList(context: Context, comic: Item): ArrayList<String> {
         val comicDirectory = getComicDirectory(context, comic)
 
-        if (pageNumber < comicDirectory.listFiles().count() && pageNumber > -1) {
-            val pageFile = comicDirectory.listFiles()[pageNumber]
+        val pageList = ArrayList<String>()
+        for (i in 0 until comic.numPages!!) {
+            val pageFile = comicDirectory.listFiles()[i]
             if (pageFile.exists()) {
-                return Uri.fromFile(pageFile).toString()
+                pageList.add(Uri.fromFile(pageFile).toString())
             }
         }
-        return null
+        return pageList
     }
 
     /**

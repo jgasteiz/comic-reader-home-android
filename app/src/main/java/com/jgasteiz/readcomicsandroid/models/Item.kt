@@ -21,7 +21,7 @@ class Item : Serializable {
     var isComicDownloading = false
     var downloadProgress = ""
 
-    // Only used when downloading a comic, otherwise this should be null.
+    // Only used when downloading or reading a comic.
     var numPages: Int? = null
 
     constructor(jsonObject: JSONObject, type: ItemType) {
