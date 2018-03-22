@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/overlayView"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/comicTitle"
+        android:background="@color/textBackground"
+        android:gravity="center|bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/overlayView"
+        android:padding="12sp"
+        android:text="@string/comic_title"
+        android:textAlignment="center"
+        android:textColor="@color/textColour"
+        android:textSize="18sp"
+        />
+
+</android.support.constraint.ConstraintLayout>
