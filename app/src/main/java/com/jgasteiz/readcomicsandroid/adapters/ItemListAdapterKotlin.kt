@@ -14,11 +14,11 @@ import kotlinx.android.synthetic.main.list_item.view.*
 import kotlin.collections.ArrayList
 
 
-class ItemListAdapter(private val context: BaseActivity,
-                      private val itemList: ArrayList<Item>,
-                      private val onItemClick: (Item) -> Unit,
-                      private val onDownloadClick: ((Item) -> Unit)?,
-                      private val onRemoveClick: (Item) -> Boolean) : RecyclerView.Adapter<ItemListAdapter.ViewHolder>()
+class ItemListAdapterKotlin(private val context: BaseActivity,
+                            private val itemList: ArrayList<Item>,
+                            private val onItemClick: (Item) -> Unit,
+                            private val onDownloadClick: ((Item) -> Unit)?,
+                            private val onRemoveClick: (Item) -> Boolean) : RecyclerView.Adapter<ItemListAdapterKotlin.ViewHolder>()
 {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

@@ -10,7 +10,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
-import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapter
+import com.jgasteiz.readcomicsandroid.adapters.ItemListAdapterKotlin
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnDirectoryContentFetched
 import com.jgasteiz.readcomicsandroid.models.Item
@@ -24,7 +24,7 @@ class DirectoryActivity() : BaseActivity() {
 
     private var mCurrentDirectory: Item? = null
 
-    private var mAdapter: ItemListAdapter? = null
+    private var mAdapterKotlin: ItemListAdapterKotlin? = null
     private var mItemList: ArrayList<Item>? = null
 
     override val hasRemovableItems = false
@@ -114,7 +114,7 @@ class DirectoryActivity() : BaseActivity() {
         recyclerView.addItemDecoration(dividerItemDecoration)
         recyclerView.layoutManager = linearLayoutManager
 
-        mAdapter = ItemListAdapter(
+        mAdapterKotlin = ItemListAdapterKotlin(
                 this,
                 mItemList!!,
                 onItemClick = ::onItemClick,
@@ -124,7 +124,7 @@ class DirectoryActivity() : BaseActivity() {
                     false
                 }
         )
-        recyclerView.adapter = mAdapter
+        recyclerView.adapter = mAdapterKotlin
     }
 
     /**
@@ -179,19 +179,19 @@ class DirectoryActivity() : BaseActivity() {
                 Toast.makeText(context, resultValue, Toast.LENGTH_SHORT).show()
                 val comic = intent.getSerializableExtra("comic") as Item
                 mItemList?.find { s -> s.path == comic.path }?.isComicDownloading = true
-                mAdapter?.notifyDataSetChanged()
+                mAdapterKotlin?.notifyDataSetChanged()
             } else if (intent.action == Constants.ACTION_DOWNLOAD_PROGRESS) {
                 val resultValue = intent.getStringExtra("resultValue")
                 val comic = intent.getSerializableExtra("comic") as Item
                 mItemList?.find { s -> s.path == comic.path }?.downloadProgress = resultValue
-                mAdapter?.notifyDataSetChanged()
+                mAdapterKotlin?.notifyDataSetChanged()
             } else if (intent.action == Constants.ACTION_DOWNLOAD_END) {
                 val resultValue = intent.getStringExtra("resultValue")
                 Toast.makeText(context, resultValue, Toast.LENGTH_SHORT).show()
                 val comic = intent.getSerializableExtra("comic") as Item
                 mItemList?.find { s -> s.path == comic.path }?.isComicDownloading = false
                 mItemList?.find { s -> s.path == comic.path }?.isComicOffline = true
-                mAdapter?.notifyDataSetChanged()
+                mAdapterKotlin?.notifyDataSetChanged()
             }
         }
     }
