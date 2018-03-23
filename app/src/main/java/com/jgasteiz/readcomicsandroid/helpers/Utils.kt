@@ -21,7 +21,8 @@ object Utils {
     private val LOG_TAG = Utils::class.java.simpleName
 
     // TODO: move this to some settings.
-    val SERVER_ADDRESS = "192.168.0.28"
+//    val SERVER_ADDRESS = "192.168.0.28"
+    val SERVER_ADDRESS = "192.168.2.25:8000"
     val DIRECTORY_API_URL = "http://${SERVER_ADDRESS}/api/directory/"
     val COMIC_DETAIL_API_URL = "http://${SERVER_ADDRESS}/api/comic/"
     val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
@@ -115,10 +116,10 @@ object Utils {
     /**
      * Get a list of page urls for an online comic.
      */
-    fun getOnlineComicPageUriList(comic: Item): ArrayList<String> {
-        val pageList = ArrayList<String>()
+    fun getOnlineComicPageUriList(comic: Item): ArrayList<Uri> {
+        val pageList = ArrayList<Uri>()
         for (i in 0 until comic.numPages!!) {
-            pageList.add(getComicPageUrl(comic, i))
+            pageList.add(Uri.parse(getComicPageUrl(comic, i)))
         }
         return pageList
     }
@@ -126,14 +127,14 @@ object Utils {
     /**
      * Get a list of page urls for a downloaded comic.
      */
-    fun getOfflineComicPageUriList(context: Context, comic: Item): ArrayList<String> {
+    fun getOfflineComicPageUriList(context: Context, comic: Item): ArrayList<Uri> {
         val comicDirectory = getComicDirectory(context, comic)
 
-        val pageList = ArrayList<String>()
+        val pageList = ArrayList<Uri>()
         for (i in 0 until comic.numPages!!) {
             val pageFile = comicDirectory.listFiles()[i]
             if (pageFile.exists()) {
-                pageList.add(Uri.fromFile(pageFile).toString())
+                pageList.add(Uri.fromFile(pageFile))
             }
         }
         return pageList

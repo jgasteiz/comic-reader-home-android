@@ -1,52 +1,65 @@
 package com.jgasteiz.readcomicsandroid.activities
 
 import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.helpers.Utils
 import com.jgasteiz.readcomicsandroid.interfaces.OnComicDetailsFetched
 import com.jgasteiz.readcomicsandroid.models.Item
-import com.jgasteiz.readcomicsandroid.views.PageOverlayView
-import com.stfalcon.frescoimageviewer.ImageViewer
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
 
 
 class ReadingActivity : Activity() {
 
     private val LOG_TAG = ReadingActivity::class.java.simpleName
 
+    private var mPageIndex = 0
+
     // The actual comic item will be passed through the intent extras.
-    private var mComic: Item? = null
+    private lateinit var mComic: Item
+    // Image view of the page.
+    private lateinit var mPageImageView: ImageView
+    // Progress bar
+    private lateinit var mProgressBar: ProgressBar
+    // List of page Uris of the current comic
+    private lateinit var mPageUriList: ArrayList<Uri>
 
-    // Image viewer used for navigating through the pages
-    private var mImageViewer: ImageViewer? = null
-
-    // The page overlay view will display the comic title and the page number
-    private var mPageOverlayView: PageOverlayView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actvity_reading)
 
+        // Initialize the page image view and progress bar.
+        mPageImageView = findViewById<ImageView>(R.id.pageImageView)
+        mProgressBar = findViewById<ProgressBar>(R.id.progressBar)
+
+        // Setup the gesture detector.
+        mPageImageView.setOnTouchListener({ v, event ->
+            GestureDetector(this, ReaderGestureListener()).onTouchEvent(event)
+        })
+
+
         mComic = intent.getSerializableExtra("comic") as Item
-        if (mComic == null) {
-            Log.e(LOG_TAG, "There was an error loading the comic.")
-            Toast.makeText(this, "There was an error loading the comic, try a different one!", Toast.LENGTH_SHORT).show()
-            return
-        }
 
         // If the comic is offline, get its number of pages straight away.
-        if (mComic!!.isComicOffline) {
-            mComic!!.numPages = Utils.getOfflineComicNumPages(this, mComic!!)
+        if (mComic.isComicOffline) {
+            mComic.numPages = Utils.getOfflineComicNumPages(this, mComic)
             startReading()
         }
         // Otherwise, get the number of pages the hard way.
         else {
-            Utils.fetchComicDetails(mComic!!.path, object : OnComicDetailsFetched {
+            Utils.fetchComicDetails(mComic.path, object : OnComicDetailsFetched {
                 override fun callback(numPages: Int) {
-                    mComic!!.numPages = numPages
+                    mComic.numPages = numPages
                     startReading()
                 }
             })
@@ -54,38 +67,50 @@ class ReadingActivity : Activity() {
     }
 
     /**
-     * Initialize the ImageViewer with the comic pages.
+     * Get the comic list of pages and load the first page.
      */
     private fun startReading() {
-        // Get the list of pages
-        val pageUriList = if (mComic!!.isComicOffline) {
-            Utils.getOfflineComicPageUriList(this, mComic!!)
+        mPageUriList = if (mComic.isComicOffline) {
+            Utils.getOfflineComicPageUriList(this, mComic)
         } else {
-            Utils.getOnlineComicPageUriList(mComic!!)
+            Utils.getOnlineComicPageUriList(mComic)
         }
+        loadPage()
+        setImmersiveMode()
+    }
 
-        // Initialize the page overlay view with the comic title.
-        mPageOverlayView = PageOverlayView(this)
-        mPageOverlayView!!.setOverlayText(mComic!!.name)
-
-        // Initialize the ImageViewer.
-        mImageViewer = ImageViewer
-                .Builder(this, pageUriList)
-                .setStartPosition(0)
-                .hideStatusBar(true)
-                // We want to close the activity when the image viewer is dismissed.
-                .setOnDismissListener({
-                    this.finish()
+    /**
+     * Load the page in the mPageIndex index.
+     */
+    private fun loadPage() {
+        val pageUri = mPageUriList[mPageIndex]
+        // If the comic is offline, load the Uri straight away.
+        if (mComic.isComicOffline) {
+            mPageImageView.setImageURI(pageUri)
+        }
+        // Otherwise, load it using Picasso
+        else {
+            mPageImageView.visibility = View.GONE
+            mProgressBar.visibility = View.VISIBLE
+            Picasso
+                .with(this)
+                .load(pageUri)
+                .into(mPageImageView, object : Callback {
+                    override fun onSuccess() {
+                        mProgressBar.visibility = View.GONE
+                        mPageImageView.visibility = View.VISIBLE
+                    }
+                    override fun onError() {
+                        mProgressBar.visibility = View.GONE
+                        mPageImageView.visibility = View.VISIBLE
+                        noMorePagesToLoad()
+                    }
                 })
-                // Set the page overlay and update the page overlay view with the page number
-                // on page changes.
-                .setOverlayView(mPageOverlayView)
-                .setImageChangeListener({
-                    val overlayText = "${mComic!!.name} - ${it + 1}/${mComic!!.numPages!!}"
-                    mPageOverlayView!!.setOverlayText(overlayText)
-                })
-                .show()
 
+        }
+    }
+
+    private fun setImmersiveMode() {
         // Set the immersive mode.
         window.decorView.systemUiVisibility =
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
@@ -95,4 +120,51 @@ class ReadingActivity : Activity() {
                 View.SYSTEM_UI_FLAG_FULLSCREEN or // hide status bar
                 View.SYSTEM_UI_FLAG_IMMERSIVE
     }
+
+    private fun noMorePagesToLoad() {
+        Toast.makeText(this, "No more pages to load", Toast.LENGTH_SHORT).show()
+    }
+
+        /**
+     * Class for detecting gestures on the mSimpleDraweeView.
+     */
+    internal inner class ReaderGestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(event: MotionEvent): Boolean {
+            Log.d("TAG", "onDown: ")
+            val touchRightPosition = (100 * event.x / mPageImageView.width).toInt()
+            when {
+                touchRightPosition > 75 -> loadNextPage()
+                touchRightPosition < 25 -> loadPreviousPage()
+                else -> setImmersiveMode()
+            }
+            return true
+        }
+    }
+
+    /**
+     * Navigate to the next page of the comic.
+     */
+    private fun loadNextPage() {
+        mPageIndex++
+        if (mPageIndex > mPageUriList.size - 1) {
+            noMorePagesToLoad()
+            mPageIndex = mPageUriList.size - 1
+        } else {
+            loadPage()
+        }
+    }
+
+    /**
+     * Navigate to the previous page of the comic.
+     */
+    private fun loadPreviousPage() {
+        mPageIndex--
+        if (mPageIndex < 0) {
+            mPageIndex = 0
+        } else {
+            loadPage()
+        }
+    }
+
+
 }
