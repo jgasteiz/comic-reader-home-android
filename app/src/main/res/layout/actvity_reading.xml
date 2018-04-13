@@ -8,12 +8,15 @@
     android:background="@android:color/black"
 >
 
-    <!-- Navigation -->
-    <ImageView android:layout_width="match_parent"
-               android:layout_height="match_parent"
+    <ScrollView android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/pageScrollView">
+        <ImageView android:layout_width="match_parent"
+               android:layout_height="wrap_content"
                android:id="@+id/pageImageView"
                android:src="@mipmap/flash"
                android:contentDescription="@string/active_page"/>
+    </ScrollView>
 
     <ProgressBar
         style="?android:attr/progressBarStyle"

@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.Toast
 import com.jgasteiz.readcomicsandroid.R
 import com.jgasteiz.readcomicsandroid.helpers.Utils
@@ -28,6 +29,8 @@ class ReadingActivity : Activity() {
     private lateinit var mComic: Item
     // Image view of the page.
     private lateinit var mPageImageView: ImageView
+    // Scroll view of the page.
+    private lateinit var mPageScrollView: ScrollView
     // Progress bar
     private lateinit var mProgressBar: ProgressBar
     // List of page Uris of the current comic
@@ -40,10 +43,11 @@ class ReadingActivity : Activity() {
 
         // Initialize the page image view and progress bar.
         mPageImageView = findViewById<ImageView>(R.id.pageImageView)
+        mPageScrollView = findViewById<ScrollView>(R.id.pageScrollView)
         mProgressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         // Setup the gesture detector.
-        mPageImageView.setOnTouchListener({ v, event ->
+        mPageImageView.setOnTouchListener({ _, event ->
             GestureDetector(this, ReaderGestureListener()).onTouchEvent(event)
         })
 
@@ -87,6 +91,7 @@ class ReadingActivity : Activity() {
         // If the comic is offline, load the Uri straight away.
         if (mComic.isComicOffline) {
             mPageImageView.setImageURI(pageUri)
+            mPageScrollView.scrollTo(0, 0)
         }
         // Otherwise, load it using Picasso
         else {
@@ -99,6 +104,7 @@ class ReadingActivity : Activity() {
                     override fun onSuccess() {
                         mProgressBar.visibility = View.GONE
                         mPageImageView.visibility = View.VISIBLE
+                        mPageScrollView.scrollTo(0, 0)
                     }
                     override fun onError() {
                         mProgressBar.visibility = View.GONE
