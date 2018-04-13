@@ -1,12 +1,15 @@
 package com.jgasteiz.readcomicsandroid.activities
 
+import android.app.ActionBar
 import android.app.Activity
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.ScrollView
@@ -42,9 +45,9 @@ class ReadingActivity : Activity() {
         setContentView(R.layout.actvity_reading)
 
         // Initialize the page image view and progress bar.
-        mPageImageView = findViewById<ImageView>(R.id.pageImageView)
-        mPageScrollView = findViewById<ScrollView>(R.id.pageScrollView)
-        mProgressBar = findViewById<ProgressBar>(R.id.progressBar)
+        mPageImageView = findViewById(R.id.pageImageView)
+        mPageScrollView = findViewById(R.id.pageScrollView)
+        mProgressBar = findViewById(R.id.progressBar)
 
         // Setup the gesture detector.
         mPageImageView.setOnTouchListener({ _, event ->
@@ -68,6 +71,13 @@ class ReadingActivity : Activity() {
                 }
             })
         }
+
+        resetLayoutParams(this.resources.configuration)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        resetLayoutParams(newConfig)
     }
 
     /**
@@ -136,11 +146,11 @@ class ReadingActivity : Activity() {
      */
     internal inner class ReaderGestureListener : GestureDetector.SimpleOnGestureListener() {
         override fun onDown(event: MotionEvent): Boolean {
-            Log.d("TAG", "onDown: ")
+            Log.d("TAG", "onDown: $event")
             val touchRightPosition = (100 * event.x / mPageImageView.width).toInt()
             when {
-                touchRightPosition > 75 -> loadNextPage()
-                touchRightPosition < 25 -> loadPreviousPage()
+                touchRightPosition > 80 -> loadNextPage()
+                touchRightPosition < 20 -> loadPreviousPage()
                 else -> setImmersiveMode()
             }
             return true
@@ -151,12 +161,20 @@ class ReadingActivity : Activity() {
      * Navigate to the next page of the comic.
      */
     private fun loadNextPage() {
-        mPageIndex++
-        if (mPageIndex > mPageUriList.size - 1) {
-            noMorePagesToLoad()
-            mPageIndex = mPageUriList.size - 1
+        // If the current scroll is not the bottom page, scroll down 1/3 of the screen.
+        val currentScroll = mPageScrollView.scrollY + windowManager.defaultDisplay.height
+        val pageHeight = mPageImageView.height
+        if (currentScroll + 10 < pageHeight) {
+            // scroll 1/2
+            mPageScrollView.scrollY = mPageScrollView.scrollY + pageHeight / 2 - windowManager.defaultDisplay.height / 2
         } else {
-            loadPage()
+            mPageIndex++
+            if (mPageIndex > mPageUriList.size - 1) {
+                noMorePagesToLoad()
+                mPageIndex = mPageUriList.size - 1
+            } else {
+                loadPage()
+            }
         }
     }
 
@@ -172,5 +190,11 @@ class ReadingActivity : Activity() {
         }
     }
 
-
+    private fun resetLayoutParams(newConfig: Configuration?) {
+        if (newConfig?.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mPageImageView.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        } else if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT){
+            mPageImageView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+    }
 }
