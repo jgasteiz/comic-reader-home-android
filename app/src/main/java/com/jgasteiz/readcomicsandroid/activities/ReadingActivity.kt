@@ -45,9 +45,9 @@ class ReadingActivity : Activity() {
         setContentView(R.layout.actvity_reading)
 
         // Initialize the page image view and progress bar.
-        mPageImageView = findViewById(R.id.pageImageView)
-        mPageScrollView = findViewById(R.id.pageScrollView)
-        mProgressBar = findViewById(R.id.progressBar)
+        mPageImageView = this.findViewById(R.id.pageImageView)
+        mPageScrollView = this.findViewById(R.id.pageScrollView)
+        mProgressBar = this.findViewById(R.id.progressBar)
 
         // Setup the gesture detector.
         mPageImageView.setOnTouchListener({ _, event ->
@@ -166,7 +166,8 @@ class ReadingActivity : Activity() {
         val pageHeight = mPageImageView.height
         if (currentScroll + 10 < pageHeight) {
             // scroll 1/2
-            mPageScrollView.scrollY = mPageScrollView.scrollY + pageHeight / 2 - windowManager.defaultDisplay.height / 2
+            val newScrollY = mPageScrollView.scrollY + pageHeight / 2 - windowManager.defaultDisplay.height / 2
+            mPageScrollView.smoothScrollTo(mPageScrollView.scrollX, newScrollY)
         } else {
             mPageIndex++
             if (mPageIndex > mPageUriList.size - 1) {

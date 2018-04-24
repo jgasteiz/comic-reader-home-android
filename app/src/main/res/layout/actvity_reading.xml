@@ -9,13 +9,15 @@
 >
 
     <ScrollView android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/pageScrollView">
+                android:layout_height="fill_parent"
+                android:id="@+id/pageScrollView"
+    >
         <ImageView android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:id="@+id/pageImageView"
-               android:src="@mipmap/flash"
-               android:contentDescription="@string/active_page"/>
+                   android:layout_height="wrap_content"
+                   android:id="@+id/pageImageView"
+                   android:adjustViewBounds="true"
+                   android:src="@mipmap/flash"
+                   android:contentDescription="@string/active_page"/>
     </ScrollView>
 
     <ProgressBar
