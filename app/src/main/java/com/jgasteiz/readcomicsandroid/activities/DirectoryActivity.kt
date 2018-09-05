@@ -86,7 +86,7 @@ class DirectoryActivity() : BaseActivity() {
         if (Utils.isNetworkAvailable(this)) {
             Utils.fetchDirectoryDetails(
                     this,
-                    mCurrentDirectory?.path,
+                    mCurrentDirectory?.pk,
                     object : OnDirectoryContentFetched {
                         override fun callback(itemList: ArrayList<Item>) {
                             populateRecyclerView(itemList)
@@ -141,6 +141,7 @@ class DirectoryActivity() : BaseActivity() {
         else if (item.type == ItemType.DIRECTORY) {
             if (mCurrentDirectory != null) {
                 item.parentDirectory = Item(
+                        mCurrentDirectory!!.pk,
                         mCurrentDirectory!!.name,
                         mCurrentDirectory!!.path,
                         mCurrentDirectory!!.parentDirectory,

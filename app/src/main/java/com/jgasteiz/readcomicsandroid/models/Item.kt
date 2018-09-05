@@ -12,6 +12,7 @@ enum class ItemType {
 class Item : Serializable {
     private val LOG_TAG = Item::class.java.simpleName
 
+    var pk: Int = 0
     lateinit var name: String
     lateinit var path: String
     var parentDirectory: Item? = null
@@ -27,6 +28,7 @@ class Item : Serializable {
     constructor(jsonObject: JSONObject, type: ItemType) {
         this.type = type
         try {
+            this.pk = jsonObject.get("pk") as Int
             this.name = jsonObject.get("name") as String
             this.path = jsonObject.get("path") as String
         } catch (e: JSONException) {
@@ -34,13 +36,15 @@ class Item : Serializable {
         }
     }
 
-    constructor(name: String?, path: String?, type: ItemType?) {
+    constructor(pk: Int?, name: String?, path: String?, type: ItemType?) {
+        this.pk = pk!!
         this.name = name!!
         this.path = path!!
         this.type = type!!
     }
 
-    constructor(name: String?, path: String?, parentDirectory: Item?, type: ItemType?) {
+    constructor(pk: Int?, name: String?, path: String?, parentDirectory: Item?, type: ItemType?) {
+        this.pk = pk!!
         this.name = name!!
         this.path = path!!
         this.parentDirectory = parentDirectory

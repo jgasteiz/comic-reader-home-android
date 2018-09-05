@@ -21,9 +21,8 @@ object Utils {
     private val LOG_TAG = Utils::class.java.simpleName
 
     // TODO: move this to some settings.
-    val SERVER_ADDRESS = "192.168.0.28"
-    val DIRECTORY_API_URL = "http://${SERVER_ADDRESS}/api/directory/"
-    val COMIC_DETAIL_API_URL = "http://${SERVER_ADDRESS}/api/comic/"
+    val SERVER_ADDRESS = "172.16.3.64:8000"
+    val FILE_API_URL = "http://${SERVER_ADDRESS}/api/fileitems/"
     val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
 
     /**
@@ -39,7 +38,7 @@ object Utils {
      * Fetch all the directories and comics inside a directory.
      * @param onDirectoryContentFetched callback
      */
-    fun fetchDirectoryDetails(context: Context, directoryPath: String?, onDirectoryContentFetched: OnDirectoryContentFetched) {
+    fun fetchDirectoryDetails(context: Context, directoryPk: Int?, onDirectoryContentFetched: OnDirectoryContentFetched) {
 
         val itemList = ArrayList<Item>()
 
@@ -47,21 +46,32 @@ object Utils {
             override fun callback(response: String) {
                 Log.d(LOG_TAG, response)
                 try {
-                    val responseJson = JSONObject(response)
-                    val pathContentsJson = responseJson.get("path_contents") as JSONObject
-                    val comicsJson = pathContentsJson.get("comics") as JSONArray
-                    val directoriesJson = pathContentsJson.get("directories") as JSONArray
+                    var responseJson: JSONObject?
+                    try {
+                        responseJson = JSONObject(response)
+                    } catch (e: Exception) {
+                        val responseJsonArray = JSONArray(response)
+                        responseJson = responseJsonArray[0] as JSONObject
+                    }
+                    if (responseJson == null) {
+                        Log.e(LOG_TAG, "There's no response to parse")
+                        onDirectoryContentFetched.callback(itemList)
+                        return
+                    }
 
-                    (0 until comicsJson.length())
-                            .map { comicsJson.get(it) as JSONObject }
+                    val childrenJson = responseJson.get("children") as JSONArray
+
+                    (0 until childrenJson.length())
+                            .map { childrenJson.get(it) as JSONObject }
                             .mapTo(itemList) {
-                                val comic = Item(it, ItemType.COMIC)
-                                comic.isComicOffline = Utils.isComicOffline(context, comic)
-                                comic
+                                if (it.get("file_type") == "directory") {
+                                    Item(it, ItemType.DIRECTORY)
+                                } else {
+                                    val comic = Item(it, ItemType.COMIC)
+                                    comic.isComicOffline = Utils.isComicOffline(context, comic)
+                                    comic
+                                }
                             }
-                    (0 until directoriesJson.length())
-                            .map { directoriesJson.get(it) as JSONObject }
-                            .mapTo(itemList) { Item(it, ItemType.DIRECTORY) }
 
                 } catch (e: JSONException) {
                     Log.e(LOG_TAG, e.message)
@@ -72,20 +82,20 @@ object Utils {
         })
 
         // If a directory path is given, fetch its details.
-        if (directoryPath != null) {
-            task.execute(String.format("%s%s/", DIRECTORY_API_URL, directoryPath))
+        if (directoryPk != null) {
+            task.execute(String.format("%s%s/", FILE_API_URL, directoryPk))
         }
         // Otherwise just fetch the root directory.
         else {
-            task.execute(DIRECTORY_API_URL)
+            task.execute(FILE_API_URL)
         }
     }
 
     /**
-     * Fetch all the directories and comics inside a directory.
+     * Fetch the details of a comic.
      * @param onComicDetailsFetched callback
      */
-    fun fetchComicDetails(comicPath: String, onComicDetailsFetched: OnComicDetailsFetched) {
+    fun fetchComicDetails(comicPk: String, onComicDetailsFetched: OnComicDetailsFetched) {
         val task = GetStringResponseAsyncTask(object : OnResponseFetched {
             override fun callback(response: String) {
                 var numPages = -1
@@ -102,14 +112,14 @@ object Utils {
             }
         })
 
-        task.execute(String.format("%s%s/", COMIC_DETAIL_API_URL, comicPath))
+        task.execute(String.format("%s%s/", FILE_API_URL, comicPk))
     }
 
     /**
      * Return the url for downloading the given comic on the given page number.
      */
     fun getComicPageUrl(comic: Item, pageNumber: Int): String {
-        return String.format("%s%s/%s", PAGE_API_URL, comic.path, pageNumber)
+        return String.format("%s%s/%s", PAGE_API_URL, comic.pk, pageNumber)
     }
 
     /**
@@ -194,7 +204,7 @@ object Utils {
                     val name = Base64.decode(it.name, android.util.Base64.DEFAULT)
                     val decodedPath = String(name, Charset.defaultCharset())
                     val decodedName = decodedPath.split("/").last()
-                    val comic = Item(decodedName, it.name, ItemType.COMIC)
+                    val comic = Item(0, decodedName, it.name, ItemType.COMIC)
                     comic.isComicOffline = Utils.isComicOffline(context, comic)
                     comic
                 }
