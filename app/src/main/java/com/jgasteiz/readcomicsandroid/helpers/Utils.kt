@@ -21,7 +21,7 @@ object Utils {
     private val LOG_TAG = Utils::class.java.simpleName
 
     // TODO: move this to some settings.
-    val SERVER_ADDRESS = "172.16.3.64:8000"
+    val SERVER_ADDRESS = "10.10.10.104:8000"
     val FILE_API_URL = "http://${SERVER_ADDRESS}/api/fileitems/"
     val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
 

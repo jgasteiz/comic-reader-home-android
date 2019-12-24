@@ -25,8 +25,8 @@ class GetStringResponseAsyncTask(private val mOnResponseFetched: OnResponseFetch
         val request = builder.build()
         try {
             val response = client.newCall(request).execute()
-            if (response?.body() != null) {
-                return response.body()!!.string()
+            if (response.body != null) {
+                return response.body!!.string()
             }
             return NO_RESPONSE_BODY
         } catch (e: SocketTimeoutException) {

@@ -54,7 +54,7 @@ class DownloadComicAsyncTask internal constructor(
                     val fileNameParts = pageUrl.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     val fileName = fileNameParts[fileNameParts.size - 1]
                     val fos = FileOutputStream("$comicDirectoryPath${java.io.File.separator}$fileName")
-                    fos.write(response.body()!!.bytes())
+                    fos.write(response.body!!.bytes())
                     fos.close()
                 } catch (e: IOException) {
                     e.printStackTrace()
