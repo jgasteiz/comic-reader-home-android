@@ -44,7 +44,7 @@ class ReadingActivity : Activity() {
         }
         // Otherwise, get the number of pages the hard way.
         else {
-            Utils.fetchComicDetails(mComic!!.path, object : OnComicDetailsFetched {
+            Utils.fetchComicDetails(mComic!!.pk, object : OnComicDetailsFetched {
                 override fun callback(numPages: Int) {
                     mComic!!.numPages = numPages
                     startReading()

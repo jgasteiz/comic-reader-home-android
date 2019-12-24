@@ -37,7 +37,7 @@ class DownloadsService: IntentService("DownloadsService") {
         val context = this
 
         // First, get the number of pages of the comic.
-        Utils.fetchComicDetails(comic.path, object : OnComicDetailsFetched {
+        Utils.fetchComicDetails(comic.pk, object : OnComicDetailsFetched {
             override fun callback(numPages: Int) {
                 comic.numPages = numPages
 

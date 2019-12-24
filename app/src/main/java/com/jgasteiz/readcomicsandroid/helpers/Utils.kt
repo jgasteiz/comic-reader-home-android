@@ -95,7 +95,7 @@ object Utils {
      * Fetch the details of a comic.
      * @param onComicDetailsFetched callback
      */
-    fun fetchComicDetails(comicPk: String, onComicDetailsFetched: OnComicDetailsFetched) {
+    fun fetchComicDetails(comicPk: Int, onComicDetailsFetched: OnComicDetailsFetched) {
         val task = GetStringResponseAsyncTask(object : OnResponseFetched {
             override fun callback(response: String) {
                 var numPages = -1
