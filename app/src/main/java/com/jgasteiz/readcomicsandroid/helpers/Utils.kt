@@ -21,7 +21,7 @@ object Utils {
     private val LOG_TAG = Utils::class.java.simpleName
 
     // TODO: move this to some settings.
-    val SERVER_ADDRESS = "10.10.10.104:8000"
+    val SERVER_ADDRESS = "192.168.0.42"
     val FILE_API_URL = "http://${SERVER_ADDRESS}/api/fileitems/"
     val PAGE_API_URL = "http://${SERVER_ADDRESS}/api/page/"
 
@@ -83,7 +83,7 @@ object Utils {
 
         // If a directory path is given, fetch its details.
         if (directoryPk != null) {
-            task.execute(String.format("%s%s/", FILE_API_URL, directoryPk))
+            task.execute(String.format("%s%s/?format=json", FILE_API_URL, directoryPk))
         }
         // Otherwise just fetch the root directory.
         else {
@@ -112,14 +112,14 @@ object Utils {
             }
         })
 
-        task.execute(String.format("%s%s/", FILE_API_URL, comicPk))
+        task.execute(String.format("%s%s/?format=json", FILE_API_URL, comicPk))
     }
 
     /**
      * Return the url for downloading the given comic on the given page number.
      */
     fun getComicPageUrl(comic: Item, pageNumber: Int): String {
-        return String.format("%s%s/%s", PAGE_API_URL, comic.pk, pageNumber)
+        return String.format("%s%s/%s/?format=json", PAGE_API_URL, comic.pk, pageNumber)
     }
 
     /**
@@ -199,8 +199,9 @@ object Utils {
 
         val downloadedDirectories = context.filesDir.listFiles()
         (0 until downloadedDirectories.count())
-                .map { downloadedDirectories.get(it) as File }
+                .map { downloadedDirectories[it] as File }
                 .mapTo(comicList) {
+                    // TODO: fix this
                     val name = Base64.decode(it.name, android.util.Base64.DEFAULT)
                     val decodedPath = String(name, Charset.defaultCharset())
                     val decodedName = decodedPath.split("/").last()

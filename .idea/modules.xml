@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Developer-comic-reader-home-android.iml" filepath="$PROJECT_DIR$/Developer-comic-reader-home-android.iml" group="comic-reader-home-android" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/comic-reader-home-android.iml" filepath="$PROJECT_DIR$/comic-reader-home-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/comic-reader-home-android-app.iml" filepath="$PROJECT_DIR$/app/comic-reader-home-android-app.iml" group="comic-reader-home-android/app" />
     </modules>
   </component>
 </project>
